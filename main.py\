@@ -1,0 +1,199 @@
+import os
+import random
+import uuid
+import hashlib
+import jwt
+from typing import Optional, List
+from datetime import datetime, timedelta
+
+# Updated imports to include OAuth2PasswordBearer
+from fastapi import FastAPI, HTTPException, Depends, Query, Request
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi.responses import HTMLResponse, JSONResponse, FileResponse
+from pydantic import BaseModel
+
+# --- CONFIGURATION ---
+SECRET_KEY = "change_this_to_a_secure_random_string_in_production"
+ALGORITHM = "HS256"
+
+# --- DEFINE OAUTH2 SCHEME (This enables the Authorize button) ---
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
+
+# --- MOCK DATABASE & MODELS ---
+class MockUser:
+   def __init__(self, id: int, username: str, hashed_password: str, balance: float = 100.0):
+     self.id = id
+     self.username = username
+     self.hashed_password = hashed_password
+     self.balance = balance
+
+class MockDB:
+   def __init__(self):
+     self.users = {}
+     self.next_id = 1
+
+   async def init_db(self):
+     print("Database initialized.")
+
+   async def get_user_by_username(self, username: str) -> Optional[MockUser]:
+     return next((u for u in self.users.values() if u.username == username), None)
+
+   async def add_user(self, username: str, hashed_password: str) -> MockUser:
+     user = MockUser(id=self.next_id, username=username, hashed_password=hashed_password, balance=100.0)
+     self.users[user.id] = user 
+     self.next_id += 1
+     return user
+
+   async def add_coins(self, user_id: int, amount: int, source: str):
+     user = next((u for u in self.users.values() if u.id == user_id), None)
+     if user:
+        user.balance += amount
+        return user.balance
+     return None
+
+mock_db = MockDB()
+
+# --- AUTH HELPERS ---
+def get_password_hash(password: str) -> str:
+  return hashlib.sha256(password.encode()).hexdigest()
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+  return get_password_hash(plain_password) == hashed_password
+
+
+def create_access_token(data: dict):
+  to_encode = data.copy()
+  expire = datetime.utcnow() + timedelta(minutes=60) 
+  to_encode.update({"exp": expire})
+  return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
+async def get_user_from_token(token: str) -> Optional[MockUser]:
+  try:
+     payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+     username: str = payload.get("sub")
+     if username is None: return None
+     return await mock_db.get_user_by_username(username)
+       except Exception:
+         return None
+
+X# --- UPDATED DEPENDENCY USING oauth2_scheme ---
+async def get_current_user(token: str = Depends(oauth2_scheme)):
+  user = await get_user_from_token(token)
+  if not user:
+     raise HTTPException(status_code=401, detail="Invalid token")
+  return user
+
+# --- APP INITIALIZATION WITH TAGS ---
+app = FastAPI(
+  title="TrafficRacer Game",
+  description="Skill-based traffic prediction game using V-Coins",
+  openapi_tags=[
+    {"name": "Authentication", "description": "User authentication endpoints"},
+    {"name": "Game", "description": "Betting and gameplay endpoints"},
+    {"name": "Store", "description": "Virtual coin purchase endpoints"}
+  ]
+)
+
+@app.on_event("startup")
+async def startup():
+  await mock_db.init_db()
+
+# --- AUTH ENDPOINTS ---
+@app.post("/register", tags=["Authentication"])
+async def register(username: str, password: str):
+  if await mock_db.get_user_by_username(username):
+     raise HTTPException(status_code=400, detail="Username exists")
+
+  user = await mock_db.add_user(username, get_password_hash(password))
+  return {"message": f"Registered! You got 100 free V-Coins!", "balance": user.balance}
+
+@app.post("/login", tags=["Authentication"])
+
+async def login(form_data: OAuth2PasswordRequestForm = Depends()):
+  user = await mock_db.get_user_by_username(form_data.username)
+  if not user or not verify_password(form_data.password, user.hashed_password):
+     raise HTTPException(status_code=400, detail="Invalid credentials")
+
+  token = create_access_token(data={"sub": user.username})
+
+  return {"access_token": token, "token_type": "bearer", "balance": user.balance}
+
+@app.get("/me/balance", tags=["Game"])
+async def get_balance(current_user: MockUser = Depends(get_current_user)):
+  return {"username": current_user.username, "v_coins": int(current_user.balance)}
+
+# ==============================================================================
+# --- VIDEO ASSET LOGIC ---
+# ==============================================================================
+
+TRAFFIC_SCENARIOS = {
+ "Heavy Traffic": {"video": "heavy_traffic.mp4", "probability": 0.4},
+ "Smooth Flow": {"video": "smooth_flow.mp4", "probability": 0.4}, 
+ "Accident": {"video": "accident_scene.mp4", "probability": 0.1},
+ "Rainy Day": {"video": "rainy_day.mp4", "probability": 0.1}
+}
+
+@app.get("/traffic/stream/{scenario}", tags=["Game"])
+async def get_traffic_video(scenario: str):
+  lookup_key = scenario.replace("_", " ")
+
+  if lookup_key not in TRAFFIC_SCENARIOS:
+     raise HTTPException(status_code=404, detail="Scenario not found")
+
+  video_filename = TRAFFIC_SCENARIOS[lookup_key]["video"]
+  file_path = f"static/videos/{video_filename}"
+
+  if not os.path.exists(file_path):
+     raise HTTPException(status_code=500, detail=f"Video file missing: {video_filename}")
+
+  return FileResponse(file_path, media_type="video/mp4")
+
+# --- GAMEPLAY / BETTING LOGIC ---
+class BetRequest(BaseModel):
+   amount: int
+   prediction: str
+
+@app.post("/bet/place", tags=["Game"])
+async def place_bet(bet_data: BetRequest, current_user: MockUser = Depends(get_current_user)):
+  if bet_data.amount <= 0:
+     raise HTTPException(status_code=400, detail="Bet must be positive")
+
+
+  if current_user.balance < bet_data.amount: 
+     raise HTTPException(status_code=400, detail="Insufficient V-Coins!")
+
+  current_user.balance -= bet_data.amount
+
+  scenarios = list(TRAFFIC_SCENARIOS.keys())
+  weights = [TRAFFIC_SCENARIOS[s]["probability"] for s in scenarios]
+  actual_result = random.choices(scenarios, weights=weights, k=1)[0]
+
+  won = (bet_data.prediction == actual_result)
+  winnings = 0
+
+  if won:
+     winnings = bet_data.amount * 2
+
+     current_user.balance += winnings
+     msg = f"Win! Result: {actual_result}. +{winnings} V-Coins."
+  else:
+     msg = f"Loss. Result: {actual_result}. -{bet_data.amount} V-Coins."
+
+  url_safe_result = actual_result.replace(" ", "_")
+  video_url = f"http://localhost:8000/traffic/stream/{url_safe_result}"
+
+
+  return {
+
+    "result": "WIN" if won else "LOSS",
+    "actual_outcome": actual_result,
+    "winnings": winnings,
+    "new_balance": current_user.balance,
+    "message": msg,
+    "video_evidence_url": video_url
+  }
+
+if __name__ == "__main__":
+   import uvicorn
+   uvicorn.run(app, host="0.0.0.0", port=8000)
+

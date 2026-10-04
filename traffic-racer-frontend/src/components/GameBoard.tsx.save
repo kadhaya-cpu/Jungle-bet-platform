@@ -1,0 +1,166 @@
+"use client";
+import { useState, useEffect, useRef } from 'react';
+import { motion } from 'framer-motion';
+import { Volume2, Settings, TrendingUp, WifiOff } from 'lucide-react';
+import { useStore } from '@/lib/store';
+
+export default function GameBoard() {
+ const { balance, placeBet, isAuthenticated } = useStore();
+
+ // STATE FOR LIVE DATA FROM SSE STREAM
+ const [currentCount, setCurrentCount] = useState(0);
+ const [roadName, setRoadName] = useState("Connecting...");
+ const [isConnected, setIsConnected] = useState(false);
+ const [lastUpdate, setLastUpdate] = useState<string | null>(null);
+
+ const [selectedChip, setSelectedChip] = useState(100);
+ const eventSourceRef = useRef<EventSource | null>(null);
+
+ // CONNECT TO BACKEND SSE STREAM
+ useEffect(() => {
+  // Initialize EventSource connection to FastAPI backend
+  const es = new EventSource('http://localhost:8000/events/stream');
+  eventSourceRef.current = es;
+
+  es.onopen = () => {
+   console.log("✅ Connected to Jungle Bet Live Feed");
+   setIsConnected(true);
+   setRoadName("North Ring Road, Lyon"); // Initial load state
+  };
+  
+  es.onmessage = (event) => {
+   try {
+     const data = JSON.parse(event.data);
+
+     if (data.type === 'CAR_DETECTED') {
+       setCurrentCount(prev => prev + 1);
+       setLastUpdate(new Date().toLocaleTimeString());
+     } else if (data.type === 'RESET_ROUND') {
+       setCurrentCount(0);
+       setRoadName(data.payload.location || "Unknown Sector");
+       setLastUpdate(null);
+     } else if (data.type === 'HEARTBEAT') {
+       // Silent keep-alive signal received
+     }
+    } catch (e) {
+      console.error("Parse error:", e);
+    }
+   };
+
+   es.onerror = (err) => {
+    console.warn("⚠️ Connection lost. Retrying...", err);
+    setIsConnected(false);
+    es.close();
+
+    // Auto-reconnect after 3 seconds using React StrictMode friendly pattern
+    setTimeout(() => {
+      // We rely on the effect cleanup/re-run mechanism for robust reconnection
+      // In production, you might want explicit retry logic here
+    }, 3000);
+   };
+
+   return () => {
+    es.close();
+   };
+  }, []); // Empty dependency array ensures single mount/unmount cycle per session
+
+  const handleQuickBet = async (type: string, target: number, operator: string) => {
+   if (!isAuthenticated) return alert("Login First");
+   try {
+     await placeBet(type, { target_count: target, operator }, selectedChip);
+     // DO NOT reset count locally anymore - wait for SERVER RESET signal via SSE!
+   } catch(e){ console.error(e)}
+ };
+
+ return (
+  <div className="app-layout-wrapper">
+
+   {/* LEFT / TOP: VIDEO STAGE */}
+   <div className="jungle-video-stage relative bg-black overflow-hidden">
+
+    {/* Background Image Placeholder */}
+    <div className="absolute inset-0 opacity-40 pointer-events-none">
+     <img src="/road-bg.jpg" alt="Cam" className="w-full h-full object-cover" onError={(e)=>{e.currentTarget.style.display='none'}}/>
+    </div>
+
+    {/* Top Bar HUD - BRANDED FOR JUNGLE BET WITH LIVE STATUS INDICATOR */}
+    <div className="absolute top-0 left-0 right-0 p-4 md:p-6 flex justify-between items-start z-20 bg-gradient-to-b from-black/90 via-black/50 to-transparent">
+
+     {/* LEFT SIDE: Branding & Location Stack */}
+     <div className="flex flex-col gap-1">
+      <h1 className="text-xl md:text-2xl font-black italic tracking-tighter text-white drop-shadow-lg">
+       JUNGLE<span className="text-[var(--jungle-green)]">BET</span>
+      </h1>
+
+      <div className="flex items-center gap-2 mt-1">
+       <span className={`relative flex h-2 w-2 ${isConnected ? '' : 'opacity-50'}`}>
+        {isConnected && <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>}
+        <span className={`relative inline-flex rounded-full h-2 w-2 ${isConnected ? 'bg-red-500' : 'bg-gray-500'}`}></span>
+       </span>
+       <span className="text-[10px] md:text-xs font-bold tracking-widest uppercase text-gray-300">
+        {isConnected ? 'LIVE FEED ACTIVE' : 'CONNECTING...'}
+       </span>
+      </div>
+
+      <p className="text-xs md:text-sm font-medium text-gray-400 italic pl-4 border-l-2 border-[var(--jungle-green)]/30 ml-1 transition-all duration-500">
+       {roadName}
+      </p>
+     </div>
+
+     {/* RIGHT SIDE: Icons */}
+     <div className="flex gap-3">
+      <button className="p-2 bg-white/10 backdrop-blur-md rounded-full hover:bg-white/20 transition-colors border border-white/10"><Volume2 size={18} className="text-white"/></button>
+      <button className="p-2 bg-white/10 backdrop-blur-md rounded-full hover:bg-white/20 transition-colors border border-white/10"><Settings size={18} className="text-white"/></button>
+     </div>
+    </div>
+
+    {/* CENTER COUNTER DISPLAY - DRIVEN BY REAL-TIME SSE DATA */}
+    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 pointer-events-none">
+     <motion.div 
+      key={currentCount}
+      initial={{ scale: 0.9, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      className="bg-black/70 backdrop-blur-xl border-2 border-[var(--jungle-green)] shadow-[0_0_40px_rgba(204,255,0,0.2)] px-10 py-6 rounded-3xl flex flex-col items-center min-w-[160px]"
+     >
+      <span className="text-6xl md:text-7xl font-black text-white tabular-nums leading-none drop-shadow-lg">{currentCount}</span>
+      <span className="text-[10px] md:text-xs uppercase tracking-[0.3em] text-[var(--jungle-green)] mt-2 font-bold">VEHICLES DETECTED</span>
+
+      {/* Last Updated Timestamp Badge */}
+      {lastUpdate && isConnected && (
+        <span className="mt-3 text-[9px] text-gray-500 font-mono">Updated: {lastUpdate}</span>
+      )}
+     </motion.div>
+    </div>
+
+    {/* GREEN LINE VISUALIZER */}
+    <div className="absolute bottom-[30%] left-0 right-0 h-1 bg-[var(--jungle-green)] shadow-[0_0_20px_var(--jungle-green)] z-10 transform skew-y-[-2deg] origin-left opacity-90"></div>
+   </div>       
+
+
+   {/* RIGHT / BOTTOM: CONTROLS CONTAINER */}
+   <div className="jungle-controls-container panel-glass p-4 flex flex-col gap-4">
+
+    <div className="pb-4 border-b border-white/10">
+     <p className="text-xs text-gray-400 uppercase font-semibold mb-1">Available Balance</p>
+     <h2 className="text-2xl md:text-3xl font-bold text-white">${balance.toFixed(2)}</h2>
+    </div>
+
+    <div>
+     <p className="text-xs text-gray-400 uppercase font-semibold mb-3">Select Stake</p>
+     <div className="grid grid-cols-3 md:grid-cols-5 gap-2">
+      {[50, 100, 200, 500, 1000].map(chip => (
+       <button 
+        key={chip}
+        onClick={() => setSelectedChip(chip)}
+        className={`py-2 rounded-lg text-sm font-bold border transition-all ${selectedChip === chip ? 'bg-[var(--jungle-green)] text-black border-transparent shadow-lg' : 'border-white/10 text-gray-300 hover:border-white/30'}`}
+       >
+        {chip}
+       </button>
+     ))}
+    </div>
+   </div>
+
+   <div className="flex-1 overflow-hidden">
+    <p className="text-xs text-gray-400 uppercase font-semibold mb-2">Active Markets</p>
+
+    <div className="jungle-scroll-row">      
