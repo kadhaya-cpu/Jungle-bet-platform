@@ -1,0 +1,172 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* =========================================
+   1. CORE THEME VARIABLES (JUNGLE BET BRAND)
+   ========================================= */
+:root {
+  /* Backgrounds */
+  --bg-dark: #050505;       /* Deepest Black for video contrast */
+  --surface: #121214;       /* Slightly lighter for panels */
+  --surface-hover: #1c1c1f;
+
+  /* Borders & Glass */
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --glass-bg: rgba(18, 18, 20, 0.75);
+  --glass-blur: blur(16px);
+
+  /* Brand Colors */
+  --jungle-green: #ccff00;  /* Electric Lime - PRIMARY ACTION */
+  --jungle-purple: #a855f7; /* Vibrant Violet - SECONDARY ACCENT */
+  --danger-red: #ef4444;    /* Loss / High Risk */
+  --gold-win: #fbbf24;      /* Jackpot / Big Win */
+  --info-blue: #3b82f6;     /* Standard Odds */
+}
+
+body {
+ background-color: var(--bg-dark);
+ color: white;
+ font-family: 'Inter', system-ui, sans-serif;
+ overflow-x: hidden;
+ -webkit-font-smoothing: antialiased;
+}
+
+/* Custom Scrollbar for Desktop */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-subtle); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: var(--jungle-green); }
+
+/* Hide Scrollbar on Mobile Elements */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+
+/* =========================================
+   2. COMPONENT UTILITIES (REUSABLE CLASSES)
+   ========================================= */
+
+/* The "Glass" Effect used everywhere */
+.panel-glass {
+ background: var(--glass-bg);
+ backdrop-filter: var(--glass-blur);
+ -webkit-backdrop-filter: var(--glass-blur);
+ border: 1px solid var(--border-subtle);
+}
+
+/* Text Glows */
+.text-neon-lime {
+  color: var(--jungle-green);
+  text-shadow: 0 0 12px rgba(204, 255, 0, 0.5);
+}
+.text-neon-purple {
+  color: var(--jungle-purple);
+  text-shadow: 0 0 12px rgba(168, 85, 247, 0.5);
+}
+.text-neon-red {
+  color: var(--danger-red);
+  text-shadow: 0 0 12px rgba(239, 68, 68, 0.5);
+}
+
+/* Buttons */
+.btn-primary {
+  background: var(--jungle-green);
+  color: black;
+  font-weight: 800;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 25px rgba(204, 255, 0, 0.4);
+}
+.btn-primary:active {
+  transform: scale(0.98);
+}
+
+/* Animations */
+@keyframes pulse-ring {
+ 0% { transform: scale(0.8); opacity: 0.5; }
+ 100% { transform: scale(1.5); opacity: 0; }
+}
+.animate-pulse-ring {
+ animation: pulse-ring 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+}
+
+@keyframes shimmer {
+ 0% { background-position: -200% 0; }
+ 100% { background-position: 200% 0; }
+}
+.animate-shimmer {
+ background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+ background-size: 200% 100%;
+ animation: shimmer 2s infinite;
+}
+
+/* Pulsing Red LIVE Dot Keyframes */
+@keyframes live-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+    box-shadow: 0 0 6px rgba(239, 68, 68, 0.9), 0 0 14px rgba(239, 68, 68, 0.5);
+  }
+  50% {
+    transform: scale(1.3);
+    opacity: 0.85;
+    box-shadow: 0 0 12px rgba(239, 68, 68, 1), 0 0 24px rgba(239, 68, 68, 0.8);
+  }
+}
+.animate-live-pulse {
+  animation: live-pulse 1.4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+
+
+/* =========================================
+   3. GREEN LINE & LASER SCAN ANIMATIONS
+   ========================================= */
+@keyframes green-line-pulse {
+  0%, 100% {
+    box-shadow: 0 0 15px #ccff00, 0 0 30px rgba(204, 255, 0, 0.6), inset 0 0 10px #ccff00;
+    opacity: 0.95;
+  }
+  50% {
+    box-shadow: 0 0 25px #ccff00, 0 0 50px rgba(204, 255, 0, 0.9), inset 0 0 15px #ffffff;
+    opacity: 1;
+  }
+}
+.animate-green-line {
+  animation: green-line-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes laser-sweep {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+.animate-laser-sweep {
+  animation: laser-sweep 2.5s ease-in-out infinite;
+}
+
+/* =========================================
+   4. RESPONSIVE THEATER LAYOUT SYSTEM
+   ========================================= */
+.app-layout-wrapper {
+  width: 100%;
+  max-width: 1380px;
+  margin: 0 auto;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.jungle-scroll-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0.75rem;
+}        
+   

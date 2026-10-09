@@ -1,0 +1,102 @@
+# ==============================================================================
+# Jungle Bet Backend - Production Multi-Stage Dockerfile with YOLOv8 GPU Support
+# Tag: jungle-bet-backend:latest
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# Stage 1: Build & Dependencies Layer
+# ------------------------------------------------------------------------------
+FROM nvidia/cuda:12.2.0-runtime-ubuntu22.04 AS builder
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
+
+# Install build tools, Python 3.11, and dev headers
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    software-properties-common \
+    curl \
+    git \
+    build-essential \
+    && add-apt-repository ppa:deadsnakes/ppa -y \
+    && apt-get update && apt-get install -y --no-install-recommends \
+    python3.11 \
+    python3.11-dev \
+    python3.11-venv \
+    python3-pip \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set up Python virtual environment
+RUN python3.11 -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Upgrade pip and build tools
+RUN pip install --no-cache-dir --upgrade pip setuptools wheel
+
+# Install PyTorch with CUDA 12.1 support
+RUN pip install --no-cache-dir \
+    torch torchvision --index-url https://download.pytorch.org/whl/cu121
+
+# Install Python application dependencies
+COPY requirements.txt /tmp/requirements.txt
+RUN pip install --no-cache-dir -r /tmp/requirements.txt
+
+# ------------------------------------------------------------------------------
+# Stage 2: Runtime Production Image
+# ------------------------------------------------------------------------------
+FROM nvidia/cuda:12.2.0-runtime-ubuntu22.04 AS runner
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
+
+# GPU Runtime Configuration
+ENV NVIDIA_VISIBLE_DEVICES=all
+ENV NVIDIA_DRIVER_CAPABILITIES=compute,utility,video
+ENV YOLO_DEVICE=cuda
+ENV TORCH_CUDA_ARCH_LIST="7.0;7.5;8.0;8.6;8.9;9.0+PTX"
+
+# Runtime libraries for OpenCV headless, FFmpeg, PostgreSQL asyncpg, and curl for healthcheck
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    software-properties-common \
+    curl \
+    netcat-openbsd \
+    ffmpeg \
+    libsm6 \
+    libxext6 \
+    libgl1 \
+    libglib2.0-0 \
+    libpq5 \
+    && add-apt-repository ppa:deadsnakes/ppa -y \
+    && apt-get update && apt-get install -y --no-install-recommends \
+    python3.11 \
+    python3.11-venv \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy virtualenv from builder stage
+COPY --from=builder /opt/venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Create application user and set up workspace
+RUN useradd -m -u 1001 appuser
+WORKDIR /app
+
+# Copy application source code
+COPY --chown=appuser:appuser . /app
+
+# Ensure Ultralytics cache directory exists and is writable by appuser
+RUN mkdir -p /home/appuser/.config/Ultralytics /app/static/videos \
+    && chown -R appuser:appuser /home/appuser /app
+
+USER appuser
+
+# Expose FastAPI port
+EXPOSE 8000
+
+# Health Check for container lifecycle & Blue/Green orchestration
+HEALTHCHECK --interval=10s --timeout=5s --start-period=15s --retries=3 \
+    CMD curl -f http://localhost:${PORT:-8000}/health || exit 1
+
+# Default entrypoint starts the FastAPI production server
+CMD ["sh", "-c", "exec uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000} --workers 2 --lifespan on"]

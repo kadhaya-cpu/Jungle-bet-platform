@@ -1,0 +1,247 @@
+version: "3.9"
+
+services:
+  # ============================================================================
+  # Shared Core Infrastructure
+  # ============================================================================
+  postgres:
+    image: postgres:16-alpine
+    container_name: junglebet-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-trafficuser}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-mypassword}
+      POSTGRES_DB: ${POSTGRES_DB:-trafficracer_db}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-trafficuser} -d ${POSTGRES_DB:-trafficracer_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - junglebet-net
+
+  redis:
+    image: redis:7-alpine
+    container_name: junglebet-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - junglebet-net
+
+  # ============================================================================
+  # Edge Reverse Proxy / Blue-Green Load Balancer
+  # ============================================================================
+  nginx:
+    image: nginx:alpine
+    container_name: junglebet-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/active_upstream.conf:/etc/nginx/conf.d/active_upstream.conf:rw
+    depends_on:
+      - redis
+      - postgres
+    networks:
+      - junglebet-net
+
+  # ============================================================================
+  # BLUE Environment (Active or Idle)
+  # ============================================================================
+  backend-blue:
+    image: jungle-bet-backend:latest
+    container_name: junglebet-backend-blue
+    restart: unless-stopped
+    ports:
+      - "8001:8000"
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-trafficuser}:${POSTGRES_PASSWORD:-mypassword}@postgres:5432/${POSTGRES_DB:-trafficracer_db}
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-aa0ff26b5d83bb0b7e34094e9bd741783680da0758a49250a0dbcd4babd50a84}
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-aa0ff26b5d83bb0b7e34094e9bd741783680da0758a49250a0dbcd4babd50a84}
+      YOLO_DEVICE: ${YOLO_DEVICE:-cuda}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 15s
+    networks:
+      - junglebet-net
+
+  frontend-blue:
+    image: jungle-bet-frontend:latest
+    container_name: junglebet-frontend-blue
+    restart: unless-stopped
+    ports:
+      - "3001:3000"
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost}
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-aa0ff26b5d83bb0b7e34094e9bd741783680da0758a49250a0dbcd4babd50a84}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-trafficuser}:${POSTGRES_PASSWORD:-mypassword}@postgres:5432/${POSTGRES_DB:-trafficracer_db}
+      NEXT_PUBLIC_API_URL: http://backend-blue:8000
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/api/health || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+    networks:
+      - junglebet-net
+
+  # ============================================================================
+  # GREEN Environment (Target or Idle)
+  # ============================================================================
+  backend-green:
+    image: jungle-bet-backend:latest
+    container_name: junglebet-backend-green
+    restart: unless-stopped
+    ports:
+      - "8002:8000"
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-trafficuser}:${POSTGRES_PASSWORD:-mypassword}@postgres:5432/${POSTGRES_DB:-trafficracer_db}
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-aa0ff26b5d83bb0b7e34094e9bd741783680da0758a49250a0dbcd4babd50a84}
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-aa0ff26b5d83bb0b7e34094e9bd741783680da0758a49250a0dbcd4babd50a84}
+      YOLO_DEVICE: ${YOLO_DEVICE:-cuda}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 15s
+    networks:
+      - junglebet-net
+
+  frontend-green:
+    image: jungle-bet-frontend:latest
+    container_name: junglebet-frontend-green
+    restart: unless-stopped
+    ports:
+      - "3002:3000"
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost}
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-aa0ff26b5d83bb0b7e34094e9bd741783680da0758a49250a0dbcd4babd50a84}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-trafficuser}:${POSTGRES_PASSWORD:-mypassword}@postgres:5432/${POSTGRES_DB:-trafficracer_db}
+      NEXT_PUBLIC_API_URL: http://backend-green:8000
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/api/health || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+    networks:
+      - junglebet-net
+
+  # ============================================================================
+  # Horizontal Scalable Celery Workers for YOLOv8 Video Processing
+  # ============================================================================
+  celery-worker:
+    image: jungle-bet-backend:latest
+    command: celery -A tasks worker --loglevel=info -O fair --max-tasks-per-child=50 --prefetch-multiplier=1
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-trafficuser}:${POSTGRES_PASSWORD:-mypassword}@postgres:5432/${POSTGRES_DB:-trafficracer_db}
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
+      YOLO_DEVICE: ${YOLO_DEVICE:-cuda}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    deploy:
+      replicas: 1
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    networks:
+      - junglebet-net
+
+  # ============================================================================
+  # Celery Horizontal Autoscaler Daemon
+  # Monitors Redis queue depth (threshold > 50) and scales celery-worker to 5 replicas
+  # ============================================================================
+  celery-autoscaler:
+    image: jungle-bet-backend:latest
+    container_name: junglebet-celery-autoscaler
+    restart: unless-stopped
+    command: python3 /app/scripts/celery_autoscaler.py
+    environment:
+      REDIS_URL: redis://redis:6379/0
+      QUEUE_DEPTH_THRESHOLD: "50"
+      SCALE_UP_REPLICAS: "5"
+      MIN_REPLICAS: "1"
+      POLL_INTERVAL: "5"
+      COOLDOWN_SECONDS: "30"
+      COMPOSE_FILE: "/app/docker-compose.prod.yml"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - .:/app
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - junglebet-net
+
+volumes:
+  postgres_data:
+    name: junglebet_postgres_data
+  redis_data:
+    name: junglebet_redis_data
+
+networks:
+  junglebet-net:
+    driver: bridge

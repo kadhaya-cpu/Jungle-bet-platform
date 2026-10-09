@@ -1,0 +1,48 @@
+{
+  "name": "traffic-racer-frontend",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "test": "tsx src/lib/__tests__/websocket-count.test.ts && tsx src/lib/__tests__/fraud-and-ai.test.ts && tsx src/lib/__tests__/payments.test.ts && tsx src/lib/__tests__/api-routes.test.ts && tsx src/lib/__tests__/ui-overhaul.test.ts"
+  },
+  "dependencies": {
+    "@auth/core": "^0.41.3",
+    "@types/paypal-rest-sdk": "^1.7.9",
+    "@types/pg": "^8.23.1",
+    "axios": "^1.20.0",
+    "bcryptjs": "^3.0.3",
+    "clsx": "^2.1.1",
+    "flutterwave-node-v3": "^1.4.1",
+    "framer-motion": "^13.4.6",
+    "lucide-react": "^1.49.0",
+    "next": "16.3.8",
+    "next-auth": "^5.0.0-beta.32",
+    "paypal-rest-sdk": "^1.8.1",
+    "paystack": "^2.0.1",
+    "pg": "^8.23.1",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "react-hot-toast": "^2.6.1",
+    "sonner": "^2.0.8",
+    "stripe": "^23.0.0",
+    "tailwind-merge": "^3.7.0",
+    "twilio": "^6.1.2",
+    "zustand": "^5.0.15"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.3.8",
+    "tailwindcss": "^4",
+    "tsx": "^4.23.15",
+    "typescript": "^5"
+  }
+}

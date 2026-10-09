@@ -2,7 +2,7 @@ from models import BetType, BetStatus
 
 def resolve_bet(bet_criteria: dict, cv_results: dict, bet_type: str) -> tuple[BetStatus, float]:
     if bet_type == BetType.COUNT_PREDICTION:
-        target = bet_criteria.get("target_count")
+        target = bet_criteria.get("target_count") if bet_criteria.get("target_count") is not None else bet_criteria.get("target")
         operator = bet_criteria.get("operator", "exact")
         actual = cv_results.get("detected_count")
         if actual is None:

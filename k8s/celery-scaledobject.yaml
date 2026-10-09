@@ -1,0 +1,76 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: celery-worker
+  labels:
+    app: jungle-bet
+    component: celery-worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jungle-bet
+      component: celery-worker
+  template:
+    metadata:
+      labels:
+        app: jungle-bet
+        component: celery-worker
+    spec:
+      containers:
+      - name: celery-worker
+        image: jungle-bet-backend:latest
+        command:
+          - "celery"
+          - "-A"
+          - "tasks"
+          - "worker"
+          - "--loglevel=info"
+          - "-O"
+          - "fair"
+          - "--max-tasks-per-child=50"
+          - "--prefetch-multiplier=1"
+        env:
+          - name: REDIS_URL
+            value: "redis://redis:6379/0"
+          - name: CELERY_BROKER_URL
+            value: "redis://redis:6379/0"
+          - name: DATABASE_URL
+            valueFrom:
+              secretKeyRef:
+                name: junglebet-secrets
+                key: DATABASE_URL
+          - name: YOLO_DEVICE
+            value: "cuda"
+        resources:
+          limits:
+            nvidia.com/gpu: 1
+            memory: "4Gi"
+            cpu: "2"
+          requests:
+            nvidia.com/gpu: 1
+            memory: "2Gi"
+            cpu: "1"
+---
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: celery-worker-scaler
+  labels:
+    app: jungle-bet
+    component: celery-worker
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: celery-worker
+  minReplicaCount: 1
+  maxReplicaCount: 5
+  cooldownPeriod: 30
+  pollingInterval: 5
+  triggers:
+  - type: redis
+    metadata:
+      address: redis:6379
+      listName: celery
+      listLength: "50"
