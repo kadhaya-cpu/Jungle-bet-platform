@@ -174,15 +174,32 @@ class AuthUserService {
     return null;
   }
 
-  public registerCredentialsUser(phone: string, password: string, name?: string): JungleUser {
+  public registerCredentialsUser(
+    phoneOrEmail: string,
+    password: string,
+    name?: string
+  ): JungleUser {
     this.loadUsers();
-    const normalized = this.normalizePhone(phone);
-    if (!normalized || normalized.length < 7) {
-      throw new Error("Invalid phone number format");
-    }
+    const isEmail = phoneOrEmail.includes("@");
+    let normalizedPhone: string | null = null;
+    let email: string | null = null;
+    let providerAccountId = "";
 
-    if (this.findUserByPhone(normalized)) {
-      throw new Error("This phone number is already registered. Please log in.");
+    if (isEmail) {
+      email = phoneOrEmail.toLowerCase().trim();
+      providerAccountId = email;
+      if (this.findUserByEmail(email)) {
+        throw new Error("This email is already registered. Please log in.");
+      }
+    } else {
+      normalizedPhone = this.normalizePhone(phoneOrEmail);
+      if (!normalizedPhone || normalizedPhone.length < 7) {
+        throw new Error("Invalid phone number format");
+      }
+      if (this.findUserByPhone(normalizedPhone)) {
+        throw new Error("This phone number is already registered. Please log in.");
+      }
+      providerAccountId = normalizedPhone;
     }
 
     if (!password || password.length < 6) {
@@ -195,12 +212,14 @@ class AuthUserService {
 
     const newUser: JungleUser = {
       id,
-      name: name?.trim() || `Racer_${normalized.slice(-4)}`,
-      phone: normalized,
-      email: null,
+      name:
+        name?.trim() ||
+        (isEmail ? email!.split("@")[0] : `Racer_${normalizedPhone!.slice(-4)}`),
+      phone: normalizedPhone,
+      email: email,
       passwordHash,
       provider: "credentials",
-      providerAccountId: normalized,
+      providerAccountId,
       balance: 100.0, // Initial bonus credits
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -211,9 +230,32 @@ class AuthUserService {
     return newUser;
   }
 
-  public verifyCredentials(phone: string, password: string): JungleUser | null {
+  public verifyCredentials(identifier: string, password: string): JungleUser | null {
     this.loadUsers();
-    const user = this.findUserByPhone(phone);
+    const cleanId = identifier.trim();
+
+    // 1. Try by phone or email
+    let user = this.findUserByPhone(cleanId);
+    if (!user) {
+      user = this.findUserByEmail(cleanId);
+    }
+    if (!user && !cleanId.includes("@")) {
+      const normalized = this.normalizePhone(cleanId);
+      user = this.findUserByPhone(normalized);
+    }
+    if (!user) {
+      for (const u of this.users.values()) {
+        if (
+          u.providerAccountId.toLowerCase() === cleanId.toLowerCase() ||
+          u.id === cleanId ||
+          (u.name && u.name.toLowerCase() === cleanId.toLowerCase())
+        ) {
+          user = u;
+          break;
+        }
+      }
+    }
+
     if (!user || !user.passwordHash) {
       return null;
     }
@@ -223,6 +265,47 @@ class AuthUserService {
       return null;
     }
     return user;
+  }
+
+  public resetPassword(identifier: string, newPassword: string): boolean {
+    this.loadUsers();
+    const cleanId = identifier.trim();
+
+    let user = this.findUserByPhone(cleanId);
+    if (!user) {
+      user = this.findUserByEmail(cleanId);
+    }
+    if (!user && !cleanId.includes("@")) {
+      const normalized = this.normalizePhone(cleanId);
+      user = this.findUserByPhone(normalized);
+    }
+    if (!user) {
+      for (const u of this.users.values()) {
+        if (
+          u.providerAccountId.toLowerCase() === cleanId.toLowerCase() ||
+          u.id === cleanId ||
+          (u.name && u.name.toLowerCase() === cleanId.toLowerCase())
+        ) {
+          user = u;
+          break;
+        }
+      }
+    }
+
+    if (!user) {
+      return false;
+    }
+
+    if (!newPassword || newPassword.length < 6) {
+      throw new Error("Password must be at least 6 characters long");
+    }
+
+    const salt = bcrypt.genSaltSync(10);
+    user.passwordHash = bcrypt.hashSync(newPassword, salt);
+    user.updatedAt = new Date().toISOString();
+    this.users.set(user.id, user);
+    this.saveUsers();
+    return true;
   }
 
   public upsertOAuthUser({

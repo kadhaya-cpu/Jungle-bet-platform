@@ -93,15 +93,68 @@ model Bet {
   @@map("bets")
 }
 
-model Transaction {
-  id          String   @id @default(cuid())
-  userId      String   @map("user_id")
-  amount      Float
-  type        String
-  description String?
-  createdAt   DateTime @default(now()) @map("created_at")
+model Wallet {
+  id            Int           @id @default(autoincrement())
+  userId        Int?          @map("user_id")
+  type          String        // PLAYER, HOUSE_REVENUE, OPERATOR_BANK
+  currency      String        @default("USD")
+  balance       Float         @default(0.0)
+  lockedBalance Float         @default(0.0) @map("locked_balance")
+  status        String        @default("active")
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @default(now()) @updatedAt @map("updated_at")
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sourceTransactions Transaction[] @relation("SourceWallet")
+  destTransactions   Transaction[] @relation("DestWallet")
+
+  @@map("wallets")
+}
+
+model Transaction {
+  id             Int       @id @default(autoincrement())
+  userId         Int?      @map("user_id")
+  amount         Float
+  type           String    // deposit, bet, win, withdrawal
+  sourceWalletId Int?      @map("source_wallet_id")
+  destWalletId   Int?      @map("dest_wallet_id")
+  timestamp      DateTime  @default(now())
+  status         String    @default("completed")
+  referenceId    String?   @map("reference_id")
+  description    String?
+  createdAt      DateTime  @default(now()) @map("created_at")
+
+  sourceWallet   Wallet?   @relation("SourceWallet", fields: [sourceWalletId], references: [id])
+  destWallet     Wallet?   @relation("DestWallet", fields: [destWalletId], references: [id])
 
   @@map("transactions")
+}
+
+model Settlement {
+  id                  Int       @id @default(autoincrement())
+  settlementDate      DateTime  @unique @map("settlement_date")
+  totalTurnover       Float     @default(0.0) @map("total_turnover")
+  totalPayouts        Float     @default(0.0) @map("total_payouts")
+  totalLosses         Float     @default(0.0) @map("total_losses")
+  netProfit           Float     @default(0.0) @map("net_profit")
+  operatorBankAccount String    @default("Stanbic Bank - IBAN GB29JUNGLE8839210") @map("operator_bank_account")
+  status              String    @default("PREPARED_FOR_TRANSFER")
+  transferReference   String?   @map("transfer_reference")
+  preparedAt          DateTime  @default(now()) @map("prepared_at")
+  settledAt           DateTime? @map("settled_at")
+  metadata            Json?
+
+  @@map("settlements")
+}
+
+model AlertNotification {
+  id        Int      @id @default(autoincrement())
+  alertType String   @map("alert_type")
+  title     String
+  message   String
+  channel   String   @default("telegram")
+  status    String   @default("sent")
+  payload   Json?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("alert_notifications")
 }

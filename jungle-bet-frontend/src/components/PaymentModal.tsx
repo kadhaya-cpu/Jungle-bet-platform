@@ -332,10 +332,10 @@ export default function PaymentModal({
         initial={{ opacity: 0, scale: 0.94, y: 15 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.94, y: 15 }}
-        className="w-full max-w-xl bg-[#0f0f12] border border-[var(--jungle-green)]/30 rounded-2xl shadow-[0_0_50px_rgba(204,255,0,0.15)] overflow-hidden flex flex-col max-h-[92vh]"
+        className="w-full max-w-xl bg-[#0f172a] border border-white/10 rounded-2xl shadow-2xl shadow-blue-500/20 overflow-hidden flex flex-col max-h-[92vh] transition-all duration-300"
       >
         {/* HEADER BAR */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-[#141418]">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-[#1e293b]">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-lg bg-[var(--jungle-green)]/10 border border-[var(--jungle-green)]/40 flex items-center justify-center">
               <Zap className="text-[var(--jungle-green)]" size={18} />
@@ -820,10 +820,10 @@ export default function PaymentModal({
               {/* ACTION BUTTON */}
               <div className="pt-2">
                 <motion.button
-                  whileHover={{ scale: 1.02 }}
+                  whileHover={{ scale: 1.01 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={handleInitiatePayment}
-                  className="w-full py-4 px-6 rounded-xl font-black text-sm md:text-base tracking-wider uppercase text-black bg-[var(--jungle-green)] shadow-[0_0_25px_rgba(204,255,0,0.4)] hover:shadow-[0_0_35px_rgba(204,255,0,0.6)] transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  className="w-full py-4 px-6 rounded-xl font-black text-sm md:text-base tracking-wider uppercase text-white bg-gradient-to-r from-blue-600 via-teal-500 to-emerald-500 hover:from-blue-500 hover:via-teal-400 hover:to-emerald-400 shadow-lg shadow-teal-500/25 hover:shadow-xl hover:shadow-teal-500/35 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer border-0"
                 >
                   {activeTab === "mobile_money" && (
                     <>

@@ -376,6 +376,13 @@ export default function AdminDashboardPage() {
                   <BarChart3 size={13} />
                   <span>Analytics</span>
                 </Link>
+                <Link
+                  href="/admin/mobile"
+                  className="px-3 py-1.5 rounded-lg text-[var(--jungle-green)] hover:text-white text-xs font-bold transition-all flex items-center gap-1.5 hover:bg-white/5 border border-[var(--jungle-green)]/30 bg-[var(--jungle-green)]/10"
+                >
+                  <Radio size={13} />
+                  <span>Mobile Ops</span>
+                </Link>
               </div>
 
               <button

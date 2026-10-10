@@ -4,11 +4,12 @@ import { authUserService } from "@/lib/auth-user-service";
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { phone, password, name } = body;
+    const { phone, email, identifier, password, name } = body;
+    const phoneOrEmail = (identifier || email || phone || "").trim();
 
-    if (!phone || typeof phone !== "string") {
+    if (!phoneOrEmail) {
       return NextResponse.json(
-        { error: "A valid phone number is required." },
+        { error: "A valid phone number or email address is required." },
         { status: 400 }
       );
     }
@@ -20,17 +21,28 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const normalizedPhone = authUserService.normalizePhone(phone);
-    const existingUser = authUserService.findUserByPhone(normalizedPhone);
-    if (existingUser) {
-      return NextResponse.json(
-        { error: "This phone number is already registered. Please sign in." },
-        { status: 409 }
-      );
+    const isEmail = phoneOrEmail.includes("@");
+    if (isEmail) {
+      const existingUser = authUserService.findUserByEmail(phoneOrEmail);
+      if (existingUser) {
+        return NextResponse.json(
+          { error: "This email address is already registered. Please sign in." },
+          { status: 409 }
+        );
+      }
+    } else {
+      const normalizedPhone = authUserService.normalizePhone(phoneOrEmail);
+      const existingUser = authUserService.findUserByPhone(normalizedPhone);
+      if (existingUser) {
+        return NextResponse.json(
+          { error: "This phone number is already registered. Please sign in." },
+          { status: 409 }
+        );
+      }
     }
 
     const newUser = authUserService.registerCredentialsUser(
-      normalizedPhone,
+      phoneOrEmail,
       password,
       name
     );

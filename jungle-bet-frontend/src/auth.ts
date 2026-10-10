@@ -15,19 +15,24 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       clientSecret: process.env.APPLE_SECRET || process.env.AUTH_APPLE_SECRET || "",
     }),
     Credentials({
-      name: "Phone and Password",
+      name: "Phone/Email and Password",
       credentials: {
-        phone: { label: "Phone Number", type: "text", placeholder: "+1234567890" },
+        identifier: { label: "Phone or Email", type: "text", placeholder: "+1234567890 or racer@junglebet.io" },
+        phone: { label: "Phone Number", type: "text" },
+        email: { label: "Email", type: "text" },
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        if (!credentials?.phone || !credentials?.password) {
+        const identifier = String(
+          credentials?.identifier || credentials?.phone || credentials?.email || ""
+        ).trim();
+        const password = String(credentials?.password || "");
+
+        if (!identifier || !password) {
           return null;
         }
-        const phone = String(credentials.phone).trim();
-        const password = String(credentials.password);
 
-        const user = authUserService.verifyCredentials(phone, password);
+        const user = authUserService.verifyCredentials(identifier, password);
         if (!user) {
           return null;
         }
@@ -39,7 +44,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           email: user.email,
           image: user.image,
           provider: "credentials",
-          providerAccountId: user.phone || user.id,
+          providerAccountId: user.phone || user.email || user.id,
           balance: user.balance,
         };
       },
@@ -50,8 +55,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   pages: {
-    signIn: "/auth",
-    error: "/auth",
+    signIn: "/login",
+    error: "/login",
   },
   callbacks: {
     async signIn({ user, account }) {

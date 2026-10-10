@@ -229,12 +229,12 @@ export default function SettingsModal({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.94, y: 15 }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="relative w-full max-w-lg rounded-3xl bg-[#101012] border border-white/15 shadow-[0_25px_70px_rgba(0,0,0,0.9),0_0_30px_rgba(204,255,0,0.12)] p-5 sm:p-6 text-white z-10 overflow-hidden"
+            className="relative w-full max-w-lg rounded-3xl bg-[#0f172a] border border-white/10 shadow-2xl shadow-blue-500/20 p-5 sm:p-6 text-white z-10 overflow-hidden transition-all duration-300"
           >
             {/* TOP BAR */}
             <div className="flex items-center justify-between pb-4 border-b border-white/10">
               <div className="flex items-center gap-2.5">
-                <div className="p-2 rounded-xl bg-black/70 border border-[var(--jungle-green)]/40 shadow-[0_0_15px_rgba(204,255,0,0.2)]">
+                <div className="p-2 rounded-xl bg-[#1e293b] border border-teal-400/30 shadow-sm shadow-teal-500/10">
                   <Shield size={18} className="text-[var(--jungle-green)]" />
                 </div>
                 <div>
@@ -444,9 +444,9 @@ export default function SettingsModal({
               {activeTab === "balance_history" && (
                 <div className="space-y-4">
                   {/* BALANCE CARD */}
-                  <div className="p-4 rounded-2xl bg-black/60 border border-[var(--jungle-green)]/40 shadow-[0_0_20px_rgba(204,255,0,0.15)] flex items-center justify-between">
+                  <div className="p-4 sm:p-5 rounded-2xl bg-[#1e293b] border border-white/10 shadow-lg shadow-blue-500/10 flex items-center justify-between transition-all duration-300">
                     <div>
-                      <span className="text-[10px] uppercase font-bold tracking-wider text-gray-400">
+                      <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400">
                         Available Balance ({currency})
                       </span>
                       <h3 className="text-2xl sm:text-3xl font-black text-white tracking-tight mt-0.5">
@@ -459,7 +459,7 @@ export default function SettingsModal({
                         onClose();
                         if (onOpenDeposit) onOpenDeposit();
                       }}
-                      className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[var(--jungle-green)] text-black font-extrabold text-xs uppercase tracking-wider hover:scale-105 active:scale-95 transition-all shadow-[0_0_15px_rgba(204,255,0,0.4)] cursor-pointer"
+                      className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 via-teal-500 to-emerald-500 hover:from-blue-500 hover:via-teal-400 hover:to-emerald-400 text-white font-black text-xs uppercase tracking-wider hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300 shadow-md shadow-teal-500/25 cursor-pointer border-0"
                     >
                       <Plus size={14} />
                       Deposit

@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import axios from 'axios';
+import { CITY_FEEDS, CityFeed, getCityFeed } from '@/data/cityFeeds';
 
 const API_URL = 'http://localhost:8000'; // FastAPI Backend
 
@@ -100,8 +101,10 @@ interface UserState {
   balance: number; // Base balance in USD
   isAuthenticated: boolean;
   currency: SupportedCurrency;
+  selectedCity: CityFeed;
 
   setCurrency: (currency: SupportedCurrency) => void;
+  setSelectedCity: (city: CityFeed | string | number) => void;
   detectGeoCurrency: (userPhone?: string) => Promise<SupportedCurrency>;
   formatAmount: (usdAmount: number, targetCurrency?: SupportedCurrency) => string;
   convertAmount: (usdAmount: number, targetCurrency?: SupportedCurrency) => number;
@@ -119,6 +122,18 @@ export const useStore = create<UserState>((set, get) => ({
   balance: 100.0,
   isAuthenticated: false,
   currency: getInitialCurrency(),
+  selectedCity: CITY_FEEDS[0],
+
+  setSelectedCity: (city) => {
+    if (typeof city === 'string' || typeof city === 'number') {
+      const found = getCityFeed(city);
+      if (found) {
+        set({ selectedCity: found });
+      }
+    } else {
+      set({ selectedCity: city });
+    }
+  },
 
   setCurrency: (currency: SupportedCurrency) => {
     if (typeof window !== 'undefined') {

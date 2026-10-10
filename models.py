@@ -39,6 +39,29 @@ class User(Base):
 
   bets = relationship("Bet", back_populates="owner")
   transactions = relationship("Transaction", back_populates="owner")
+  wallets = relationship("Wallet", back_populates="user")
+
+class WalletType(str, enum.Enum):
+  PLAYER = "PLAYER"
+  HOUSE_REVENUE = "HOUSE_REVENUE"
+  OPERATOR_BANK = "OPERATOR_BANK"
+  OPERATOR_OPERATING = "OPERATOR_OPERATING"
+  ESCROW = "ESCROW"
+  LIQUIDITY_POOL = "LIQUIDITY_POOL"
+
+class Wallet(Base):
+  __tablename__ = "wallets"
+  id = Column(Integer, primary_key=True, index=True)
+  user_id = Column(Integer, ForeignKey("users.id"), nullable=True, index=True)
+  type = Column(String, nullable=False, index=True)  # 'PLAYER' or 'HOUSE_REVENUE'
+  currency = Column(String, default="USD", nullable=False)
+  balance = Column(Float, default=0.0, nullable=False)
+  locked_balance = Column(Float, default=0.0, nullable=False)
+  status = Column(String, default="active", nullable=False)
+  created_at = Column(DateTime, default=datetime.datetime.utcnow)
+  updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
+
+  user = relationship("User", back_populates="wallets")
 
 class FraudAlert(Base):
   __tablename__ = "fraud_alerts"
@@ -69,12 +92,55 @@ class Bet(Base):
 class Transaction(Base):
   __tablename__ = "transactions"
   id = Column(Integer, primary_key=True, index=True)
-  user_id = Column(Integer, ForeignKey("users.id"))
+  user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
   amount = Column(Float, nullable=False)
-  type = Column(String, nullable=False)
+  type = Column(String, nullable=False)  # 'deposit', 'bet', 'win', 'withdrawal'
+  source_wallet_id = Column(Integer, ForeignKey("wallets.id"), nullable=True)
+  dest_wallet_id = Column(Integer, ForeignKey("wallets.id"), nullable=True)
+  timestamp = Column(DateTime, default=datetime.datetime.utcnow)
+  status = Column(String, default="completed")
+  reference_id = Column(String, nullable=True)
   description = Column(String, nullable=True)
   created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
   owner = relationship("User", back_populates="transactions")
+  source_wallet = relationship("Wallet", foreign_keys=[source_wallet_id])
+  dest_wallet = relationship("Wallet", foreign_keys=[dest_wallet_id])
+
+class Settlement(Base):
+  __tablename__ = "settlements"
+  id = Column(Integer, primary_key=True, index=True)
+  settlement_date = Column(DateTime, unique=True, nullable=False)
+  total_turnover = Column(Float, default=0.0, nullable=False)
+  total_payouts = Column(Float, default=0.0, nullable=False)
+  total_losses = Column(Float, default=0.0, nullable=False)
+  net_profit = Column(Float, default=0.0, nullable=False)
+  operator_bank_account = Column(String, default="Stanbic Bank - IBAN GB29JUNGLE8839210", nullable=False)
+  status = Column(String, default="PREPARED_FOR_TRANSFER", nullable=False)
+  transfer_reference = Column(String, nullable=True)
+  prepared_at = Column(DateTime, default=datetime.datetime.utcnow)
+  settled_at = Column(DateTime, nullable=True)
+  metadata_info = Column("metadata", JSONB, nullable=True)
+
+class AlertNotification(Base):
+  __tablename__ = "alert_notifications"
+  id = Column(Integer, primary_key=True, index=True)
+  alert_type = Column(String, nullable=False, index=True)
+  title = Column(String, nullable=False)
+  message = Column(String, nullable=False)
+  channel = Column(String, default="telegram", nullable=False)
+  status = Column(String, default="sent", nullable=False)
+  payload = Column(JSONB, nullable=True)
+  created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+class AuditLog(Base):
+  __tablename__ = "audit_logs"
+  id = Column(Integer, primary_key=True, index=True)
+  event_type = Column(String, nullable=False, index=True)
+  severity = Column(String, default="WARNING")
+  details = Column(JSONB, nullable=True)
+  message = Column(String, nullable=False)
+  created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
 class CameraFeed(Base):
   __tablename__ = "camera_feeds"

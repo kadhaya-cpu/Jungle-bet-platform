@@ -173,3 +173,70 @@ The system automatically verifies and streams the top 3 live camera junctions:
 | `src/lib/__tests__/websocket-count.test.ts` | Frontend `/ws/count` hook and connectivity | `npx tsx src/lib/__tests__/websocket-count.test.ts` |
 | `src/lib/__tests__/fraud-and-ai.test.ts` | Fraud hooks, ban action, Leo AI chatbot | `npx tsx src/lib/__tests__/fraud-and-ai.test.ts` |
 | `src/lib/__tests__/payment-webhooks-validation.test.ts` | Stripe & M-Pesa webhooks & balance update | `npx tsx src/lib/__tests__/payment-webhooks-validation.test.ts` |
+| `test_financial_core.py` | Segregated wallets, direct update trigger, processBet, daily settlement | `python test_financial_core.py` |
+| `test_treasury.py` | Treasury math, 25% safety float, 2 AM sweep, compliance checks, API | `python test_treasury.py` |
+| `src/lib/__tests__/financial-core-and-mobile.test.ts` | Mobile metrics, high-value transaction feed, one-click ban, alerts, treasury | `npx tsx src/lib/__tests__/financial-core-and-mobile.test.ts` |
+
+---
+
+## 10. Financial Core & Mobile Monitoring Architecture
+
+### Database Schema Segregation
+- **Wallets**: Segregated wallets table with types `PLAYER` (isolated user balance & locked balance) and `HOUSE_REVENUE` (central bankroll).
+- **Direct SQL Update Prevention**: Enforced at the PostgreSQL engine level via `trg_protect_wallet_balance` trigger. All balance adjustments outside `transaction_service` (`junglebet.transaction_service = 'active'`) fail with `DIRECT_UPDATE_FORBIDDEN`.
+- **Double-Entry Transactions**: Table records `source_wallet_id`, `dest_wallet_id`, `amount`, `type` (`deposit`, `bet`, `win`, `withdrawal`), `status`, and `timestamp`.
+
+### Money Movement Logic (`processBet`)
+1. **Stake Lock**: Atomic deduction from `PLAYER` balance to `locked_balance`.
+2. **Loss**: Moves stake from `locked_balance` to `HOUSE_REVENUE` wallet.
+3. **Win**: Deducts `(stake * odds)` from `HOUSE_REVENUE` wallet and credits `PLAYER` wallet.
+4. **Daily Settlement**: Celery task scheduled at 11:59 PM calculating net profit, closing ledger, and preparing external transfer to operator's bank account (`Stanbic Bank - IBAN GB29JUNGLE8839210`).
+
+### Mobile-First Admin Dashboard (`/admin/mobile`)
+- Passcode-protected (`jungleadmin2026`) phone screen interface.
+- 4 Key Mobile Metrics: `Today's Net Profit`, `Active Players`, `Total Liability`, `House Bankroll`.
+- Live feed of high-value transactions (> $100 and win payouts).
+- One-Click Ban action with instant security enforcement.
+
+### Real-Time Alerts Engine
+- Telegram Bot API integration and in-app push dispatch.
+- Triggers on: High win > $1,000, daily profit target reached ($5,000), fraud detection alerts, and 11:59 PM daily financial summary.
+
+---
+
+## 11. Treasury Management & Safe Withdrawal System
+
+### Core Treasury Formulation
+- **Minimum Safety Float Ratio Constant**: `MIN_SAFETY_FLOAT_RATIO = 0.25` (25%).
+- **Backend Service**: `treasury_service.py` provides `calculate_safe_withdrawal()`.
+- **Formulation**:
+  - `Total_Liabilities = Sum of all active user wallet balances`.
+  - `Required_Float = Total_Liabilities * MIN_SAFETY_FLOAT_RATIO`.
+  - `Available_Profit = Max(0, House_Revenue_Wallet_Balance - Required_Float)`.
+  - Returns `Available_Profit` as the maximum safe amount to withdraw.
+
+### Strict Safety Guardrails & Compliance Protection
+- **Hard Block in Withdrawal API**: Reject any manual or automated withdrawal request that would cause `House_Revenue_Wallet < Required_Float` with `ComplianceViolationError` (HTTP 400).
+- **Persistent Audit Logging**: All blocked withdrawal attempts are automatically logged in `audit_logs` table, `alert_notifications`, and `transactions` (with status `BLOCKED`).
+
+### Automated Daily Sweep Job
+- **Cron Schedule**: Celery Beat runs daily at **02:00 AM local time** (`crontab(hour=2, minute=0)`).
+- **Celery Task**: `daily_profit_sweep`.
+- **Execution**:
+  - Calls `calculate_safe_withdrawal()`.
+  - If `amount > 0`:
+    1. Moves funds from `House_Revenue_Wallet` to `Operator_Operating_Wallet`.
+    2. Tags transaction type as `PROFIT_WITHDRAWAL`.
+    3. Dispatches Telegram alert: `"Daily Sweep: Moved [amount] to Operating Account. Remaining Float: [float]."`
+  - If `amount == 0`:
+    1. Dispatches Telegram alert: `"⚠️ No profit available for withdrawal today. Maintaining safety float."`
+
+### Admin Mobile Dashboard Visualization (`/admin/mobile`)
+- **Treasury Status Card**:
+  - `Total Player Liabilities`: Live sum of player balances.
+  - `Required Safety Float (25%)`: Locked regulatory float floor (Red text if low).
+  - `Safe to Withdraw Now`: Operating profit available (Green text).
+- **Force Sweep Button**:
+  - Emergency liquidity sweep control protected by **2-Factor Authentication (2FA)**.
+  - Re-runs calculation live before executing.
+  - Strictly preserves the Required Safety Float floor.

@@ -14,6 +14,8 @@ export interface CameraFeed {
   country_code: string;
   status: string;
   lane_mask?: { coordinates?: number[][] } | null;
+  youtube_id?: string;
+  youtubeId?: string;
 }
 
 // ONLY THE 3 VERIFIED WORKING STREAMS

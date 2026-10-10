@@ -131,6 +131,17 @@ class FraudDetectionService:
                 "timestamp": datetime.datetime.utcnow().isoformat() + "Z",
             }
             asyncio.create_task(self.broadcast_alert(alert_payload))
+            try:
+                from notifications import notification_service
+                asyncio.create_task(notification_service.alert_fraud(
+                    username=username or f"user_{uid_str}",
+                    user_id=int(uid_str) if uid_str.isdigit() else None,
+                    alert_type="rapid_bets",
+                    reason=reason,
+                    severity="HIGH",
+                ))
+            except Exception:
+                pass
 
         return {
             "is_suspicious": is_suspicious,
@@ -186,6 +197,17 @@ class FraudDetectionService:
                 "timestamp": datetime.datetime.utcnow().isoformat() + "Z",
             }
             asyncio.create_task(self.broadcast_alert(alert_payload))
+            try:
+                from notifications import notification_service
+                asyncio.create_task(notification_service.alert_fraud(
+                    username=username or f"user_{uid_str}",
+                    user_id=int(uid_str) if uid_str.isdigit() else None,
+                    alert_type="large_win",
+                    reason=reason,
+                    severity="CRITICAL",
+                ))
+            except Exception:
+                pass
 
         return {
             "is_suspicious": is_suspicious,

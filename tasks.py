@@ -323,51 +323,55 @@ async def update_database_with_result(bet_id: int, cv_output: dict):
         payout_amount = 0.0
         if status == BetStatus.WON:
             payout_amount = bet.amount * multiplier
+            from transaction_service import transaction_service
             user_res = await session.execute(select(User).where(User.id == bet.user_id))
             user = user_res.scalar_one_or_none()
-            if user:
-                user.v_coins += payout_amount
-                txn = Transaction(
-                    user_id=bet.user_id,
-                    amount=payout_amount,
-                    type="bet_won",
-                    description=f"Won {payout_amount} V-Coins on Bet #{bet_id} (Count: {cv_output.get('detected_count')})"
-                )
-                session.add(txn)
-                logger.info("[DB/Audit] WINNER! User %d won %.2f coins (multiplier: %.1fx).",
-                            bet.user_id, payout_amount, multiplier)
+            username = user.username if user else None
+            await transaction_service.process_bet_win(
+                session=session,
+                user_id=bet.user_id,
+                stake=bet.amount,
+                odds=multiplier,
+                bet_id=bet_id,
+                username=username,
+            )
+            logger.info("[DB/Audit] WINNER! User %d won %.2f coins (multiplier: %.1fx).",
+                        bet.user_id, payout_amount, multiplier)
 
-                # Fraud Detection Hook: trigger flag when user wins over 1,000 instantly
-                if payout_amount > 1000.0:
-                    try:
-                        from fraud_detection import fraud_service
-                        await fraud_service.record_win(
-                            user_id=bet.user_id,
-                            win_amount=payout_amount,
-                            bet_id=bet_id,
-                            username=user.username,
-                            session=session
-                        )
-                    except Exception as fe:
-                        logger.error("Error evaluating fraud win hook: %s", fe)
+            # Fraud Detection Hook: trigger flag when user wins over 1,000 instantly
+            if payout_amount > 1000.0:
+                try:
+                    from fraud_detection import fraud_service
+                    await fraud_service.record_win(
+                        user_id=bet.user_id,
+                        win_amount=payout_amount,
+                        bet_id=bet_id,
+                        username=username,
+                        session=session
+                    )
+                except Exception as fe:
+                    logger.error("Error evaluating fraud win hook: %s", fe)
         elif status == BetStatus.LOST:
+            from transaction_service import transaction_service
+            await transaction_service.process_bet_loss(
+                session=session,
+                user_id=bet.user_id,
+                stake=bet.amount,
+                bet_id=bet_id
+            )
             logger.info("[DB/Audit] Bet ID %d marked as LOST (AI Count: %s, Prediction: %s)",
                         bet_id, cv_output.get("detected_count"), bet.criteria)
         elif status == BetStatus.VOID:
-            # Refund bet amount if void
-            user_res = await session.execute(select(User).where(User.id == bet.user_id))
-            user = user_res.scalar_one_or_none()
-            if user:
-                user.v_coins += bet.amount
-                txn = Transaction(
-                    user_id=bet.user_id,
-                    amount=bet.amount,
-                    type="refund",
-                    description=f"Refunded {bet.amount} V-Coins on Bet #{bet_id}"
-                )
-                session.add(txn)
-                logger.info("[DB/Audit] Bet ID %d VOID. Refunded %.2f coins to user %d.",
-                            bet_id, bet.amount, bet.user_id)
+            from transaction_service import transaction_service
+            await transaction_service.processBet(
+                session=session,
+                user_id=bet.user_id,
+                stake=bet.amount,
+                outcome="void",
+                bet_id=bet_id
+            )
+            logger.info("[DB/Audit] Bet ID %d VOID. Refunded %.2f coins to user %d.",
+                        bet_id, bet.amount, bet.user_id)
 
         # Include payout in resolution data for frontend celebration overlay
         cv_output["payout"] = payout_amount
@@ -446,6 +450,8 @@ def process_live_feed(
                 lane_regions = bet_criteria.get("lane_regions")
             if "duration_seconds" in bet_criteria:
                 duration_seconds = int(bet_criteria["duration_seconds"])
+            elif "duration" in bet_criteria:
+                duration_seconds = int(bet_criteria["duration"])
             if "max_frames" in bet_criteria:
                 max_frames = int(bet_criteria["max_frames"])
 
@@ -530,6 +536,7 @@ def process_live_feed(
     detection_confidences = []
     vehicle_type_counts = {v: 0 for v in DEFAULT_VEHICLE_CLASSES.values()}
     counts_per_second = []
+    crossings = []
     fallback_tracker = SimpleCentroidTracker(max_distance=80.0)
 
     start_time = time.time()
@@ -657,6 +664,11 @@ def process_live_feed(
                     if tid not in all_unique_ids:
                         all_unique_ids.add(tid)
                         vehicle_type_counts[cls_name] = vehicle_type_counts.get(cls_name, 0) + 1
+                        crossings.append({
+                            "track_id": tid,
+                            "timestamp": round(time.time() - start_time, 2),
+                            "vehicle_type": cls_name,
+                        })
 
     finally:
         # OPTIMIZATION: Ensure worker releases VideoCapture object immediately
@@ -694,6 +706,7 @@ def process_live_feed(
         "lane_counts": lane_counts,
         "vehicle_breakdown": {k: v for k, v in vehicle_type_counts.items() if v > 0},
         "counts_per_second": counts_per_second,
+        "crossings": crossings,
         "processed_frames": processed_count,
         "total_frames": raw_frame_idx,
         "processing_time_ms": elapsed_ms,
@@ -705,3 +718,79 @@ def process_live_feed(
         run_sync(update_database_with_result(bet_id, cv_result))
 
     return cv_result
+
+
+@celery_app.task(name="daily_settlement_task")
+def daily_settlement_task(operator_bank_account: Optional[str] = None):
+    """
+    Daily settlement job: Calculates today's net profit,
+    prepares external operator bank transfer, and dispatches 11:59 PM summary report.
+    """
+    from transaction_service import transaction_service
+
+    async def _execute():
+        async with AsyncSessionLocal() as session:
+            res = await transaction_service.daily_settlement(
+                session=session,
+                operator_bank_account=operator_bank_account
+            )
+            await session.commit()
+            return res
+
+    return run_sync(_execute())
+
+
+@celery_app.task(name="daily_treasury_sweep_task")
+def daily_treasury_sweep_task(amount: Optional[float] = None, operator_bank_account: Optional[str] = None):
+    """
+    Automated Daily Treasury Sweep Job (Cron 2:00 AM UTC):
+    - Calculates Withdrawable Profit (House Balance - Required Safety Float).
+    - If Withdrawable Amount > 0:
+      * Transfers funds from House Revenue Wallet to Operator External Account.
+      * Logs transaction as 'OPERATING_PROFIT_WITHDRAWAL'.
+      * Sends Telegram alert: 'Daily Sweep Complete: Moved [amount] to Operating Account.'
+    """
+    from transaction_service import transaction_service
+
+    async def _execute():
+        async with AsyncSessionLocal() as session:
+            res = await transaction_service.execute_sweep(
+                session=session,
+                amount=amount,
+                operator_bank_account=operator_bank_account,
+                is_manual=False,
+            )
+            await session.commit()
+            return res
+
+    return run_sync(_execute())
+
+
+@celery_app.task(name="daily_profit_sweep")
+def daily_profit_sweep(amount: Optional[float] = None, operator_bank_account: Optional[str] = None):
+    """
+    Automated Daily Profit Sweep (Celery scheduled task running at 02:00 AM local time):
+    Logic:
+    * Call 'calculate_safe_withdrawal()'.
+    * If amount > 0:
+      - Create a transaction record moving funds from 'House_Revenue_Wallet' to 'Operator_Operating_Wallet'.
+      - Tag transaction type as 'PROFIT_WITHDRAWAL'.
+      - Trigger Telegram alert to Admin: ' Daily Sweep: Moved 0 to Operating Account. Remaining Float: 0.'
+    * If amount == 0: Send alert '⚠️ No profit available for withdrawal today. Maintaining safety float.'
+    """
+    from treasury_service import treasury_service
+
+    async def _execute():
+        async with AsyncSessionLocal() as session:
+            res = await treasury_service.execute_profit_sweep(
+                session=session,
+                amount=amount,
+                operator_bank_account=operator_bank_account,
+                is_manual=False,
+                transaction_type="PROFIT_WITHDRAWAL",
+            )
+            await session.commit()
+            return res
+
+    return run_sync(_execute())
+

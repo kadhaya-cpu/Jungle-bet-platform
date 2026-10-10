@@ -3,44 +3,110 @@
 @tailwind utilities;
 
 /* =========================================
+   TYPOGRAPHY FIX: DEFAULT INPUT FIELDS VISIBILITY
+   All input fields default to text-gray-200 / text-white in dark mode.
+   Remove any black text styling.
+   ========================================= */
+@layer base {
+  input[type="text"],
+  input[type="email"],
+  input[type="tel"],
+  input[type="password"],
+  input[type="number"],
+  input[type="search"],
+  input {
+    color: #e5e7eb; /* text-gray-200 by default */
+  }
+
+  input::placeholder {
+    color: #9ca3af; /* text-gray-400 */
+  }
+}
+
+
+/* =========================================
    1. CORE THEME VARIABLES (JUNGLE BET BRAND)
    ========================================= */
 :root {
-  /* Backgrounds */
-  --bg-dark: #050505;       /* Deepest Black for video contrast */
-  --surface: #121214;       /* Slightly lighter for panels */
-  --surface-hover: #1c1c1f;
+  /* Backgrounds: Deep blues & very dark slates (avoid pure black) */
+  --bg-dark: #0f172a;       /* Deep Slate Blue (#0f172a) */
+  --surface: #1e293b;       /* MMG Card Surface (#1e293b) */
+  --surface-hover: #334155;
+  --surface-active: #1e293b;
 
   /* Borders & Glass */
-  --border-subtle: rgba(255, 255, 255, 0.08);
-  --glass-bg: rgba(18, 18, 20, 0.75);
+  --border-subtle: rgba(255, 255, 255, 0.1);
+  --glass-bg: rgba(15, 23, 42, 0.85);
   --glass-blur: blur(16px);
 
-  /* Brand Colors */
-  --jungle-green: #ccff00;  /* Electric Lime - PRIMARY ACTION */
-  --jungle-purple: #a855f7; /* Vibrant Violet - SECONDARY ACCENT */
+  /* Brand Colors - MMG Signature Teal & Emerald Green Gradients */
+  --jungle-green: #10b981;  /* Emerald Green */
+  --teal-accent: #14b8a6;   /* Signature Teal */
+  --teal-glow: rgba(20, 184, 166, 0.25);
+  --teal-hover: #10b981;
+  --jungle-purple: #8b5cf6; /* Modern Violet Accent */
   --danger-red: #ef4444;    /* Loss / High Risk */
   --gold-win: #fbbf24;      /* Jackpot / Big Win */
-  --info-blue: #3b82f6;     /* Standard Odds */
+  --info-blue: #38bdf8;     /* Sky Blue Telemetry */
 }
 
 body {
- background-color: var(--bg-dark);
- color: white;
- font-family: 'Inter', system-ui, sans-serif;
- overflow-x: hidden;
- -webkit-font-smoothing: antialiased;
+  background-color: var(--bg-dark);
+  color: #f8fafc;
+  font-family: var(--font-inter), 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+h1, h2, h3, h4, h5, h6, .font-heading {
+  font-family: var(--font-poppins), 'Poppins', var(--font-inter), 'Inter', sans-serif;
 }
 
 /* Custom Scrollbar for Desktop */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--border-subtle); border-radius: 10px; }
-::-webkit-scrollbar-thumb:hover { background: var(--jungle-green); }
+::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.12); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: var(--teal-accent); }
 
 /* Hide Scrollbar on Mobile Elements */
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* MMG Theme Specific Utilities */
+.mmg-card {
+  background: #1e293b;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 1rem;
+  box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.5), 0 8px 10px -6px rgba(15, 23, 42, 0.5);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.mmg-glow-teal {
+  box-shadow: 0 0 25px rgba(20, 184, 166, 0.25);
+}
+
+.mmg-border-teal {
+  border-color: rgba(20, 184, 166, 0.4);
+}
+
+.btn-teal {
+  background: linear-gradient(135deg, #14b8a6 0%, #10b981 100%);
+  color: #ffffff;
+  font-weight: 800;
+  border-radius: 0.75rem;
+  box-shadow: 0 10px 15px -3px rgba(20, 184, 166, 0.25);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.btn-teal:hover {
+  background: linear-gradient(135deg, #0d9488 0%, #059669 100%);
+  box-shadow: 0 14px 20px -3px rgba(20, 184, 166, 0.35);
+  transform: translateY(-2px);
+}
+.btn-teal:active {
+  transform: translateY(0);
+}
 
 
 /* =========================================
@@ -49,16 +115,19 @@ body {
 
 /* The "Glass" Effect used everywhere */
 .panel-glass {
- background: var(--glass-bg);
- backdrop-filter: var(--glass-blur);
- -webkit-backdrop-filter: var(--glass-blur);
- border: 1px solid var(--border-subtle);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--border-subtle);
+  border-radius: 1rem;
+  box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.6);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Text Glows */
 .text-neon-lime {
   color: var(--jungle-green);
-  text-shadow: 0 0 12px rgba(204, 255, 0, 0.5);
+  text-shadow: 0 0 12px rgba(16, 185, 129, 0.5);
 }
 .text-neon-purple {
   color: var(--jungle-purple);
@@ -71,17 +140,19 @@ body {
 
 /* Buttons */
 .btn-primary {
-  background: var(--jungle-green);
-  color: black;
+  background: linear-gradient(135deg, #2563eb 0%, #14b8a6 50%, #10b981 100%);
+  color: #ffffff;
   font-weight: 800;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 0.75rem;
+  box-shadow: 0 10px 15px -3px rgba(20, 184, 166, 0.25);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 0 25px rgba(204, 255, 0, 0.4);
+  box-shadow: 0 14px 25px -3px rgba(20, 184, 166, 0.35);
 }
 .btn-primary:active {
-  transform: scale(0.98);
+  transform: translateY(0);
 }
 
 /* Animations */
@@ -169,4 +240,26 @@ body {
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 0.75rem;
 }        
-   
+
+/* =========================================
+   5. MARQUEE TICKER SCROLL ANIMATION
+   ========================================= */
+@keyframes jungle-marquee {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+.animate-jungle-marquee {
+  display: flex;
+  width: max-content;
+  will-change: transform;
+  animation: jungle-marquee 28s linear infinite;
+}
+
+.animate-jungle-marquee:hover {
+  animation-play-state: paused;
+}
