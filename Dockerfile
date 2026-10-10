@@ -1,102 +1,64 @@
 # ==============================================================================
-# Jungle Bet Backend - Production Multi-Stage Dockerfile with YOLOv8 GPU Support
-# Tag: jungle-bet-backend:latest
+# Jungle Bet Backend - Production Dockerfile
+# Base: python:3.12-slim (migrated from nvidia/cuda base for lightweight deployment)
+# Features: FastAPI, Uvicorn, PyTorch/torch, Ultralytics YOLOv8, OpenCV, Asyncpg
 # ==============================================================================
 
-# ------------------------------------------------------------------------------
-# Stage 1: Build & Dependencies Layer
-# ------------------------------------------------------------------------------
-FROM nvidia/cuda:12.2.0-runtime-ubuntu22.04 AS builder
+FROM python:3.12-slim
 
-ENV DEBIAN_FRONTEND=noninteractive
-ENV PYTHONUNBUFFERED=1
-ENV PYTHONDONTWRITEBYTECODE=1
+# Labels
+LABEL maintainer="Jungle Bet Team"
+LABEL description="Production FastAPI backend for Jungle Bet traffic telemetry and sports betting"
 
-# Install build tools, Python 3.11, and dev headers
+# Python runtime and environment flags
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    DEBIAN_FRONTEND=noninteractive \
+    PORT=8000 \
+    YOLO_DEVICE=cpu
+
+# Install system dependencies required for OpenCV headless, FFmpeg video stream processing, and healthcheck
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    software-properties-common \
     curl \
-    git \
-    build-essential \
-    && add-apt-repository ppa:deadsnakes/ppa -y \
-    && apt-get update && apt-get install -y --no-install-recommends \
-    python3.11 \
-    python3.11-dev \
-    python3.11-venv \
-    python3-pip \
-    libpq-dev \
-    && rm -rf /var/lib/apt/lists/*
-
-# Set up Python virtual environment
-RUN python3.11 -m venv /opt/venv
-ENV PATH="/opt/venv/bin:$PATH"
-
-# Upgrade pip and build tools
-RUN pip install --no-cache-dir --upgrade pip setuptools wheel
-
-# Install PyTorch with CUDA 12.1 support
-RUN pip install --no-cache-dir \
-    torch torchvision --index-url https://download.pytorch.org/whl/cu121
-
-# Install Python application dependencies
-COPY requirements.txt /tmp/requirements.txt
-RUN pip install --no-cache-dir -r /tmp/requirements.txt
-
-# ------------------------------------------------------------------------------
-# Stage 2: Runtime Production Image
-# ------------------------------------------------------------------------------
-FROM nvidia/cuda:12.2.0-runtime-ubuntu22.04 AS runner
-
-ENV DEBIAN_FRONTEND=noninteractive
-ENV PYTHONUNBUFFERED=1
-ENV PYTHONDONTWRITEBYTECODE=1
-
-# GPU Runtime Configuration
-ENV NVIDIA_VISIBLE_DEVICES=all
-ENV NVIDIA_DRIVER_CAPABILITIES=compute,utility,video
-ENV YOLO_DEVICE=cuda
-ENV TORCH_CUDA_ARCH_LIST="7.0;7.5;8.0;8.6;8.9;9.0+PTX"
-
-# Runtime libraries for OpenCV headless, FFmpeg, PostgreSQL asyncpg, and curl for healthcheck
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    software-properties-common \
-    curl \
-    netcat-openbsd \
     ffmpeg \
-    libsm6 \
-    libxext6 \
     libgl1 \
     libglib2.0-0 \
-    libpq5 \
-    && add-apt-repository ppa:deadsnakes/ppa -y \
-    && apt-get update && apt-get install -y --no-install-recommends \
-    python3.11 \
-    python3.11-venv \
+    libsm6 \
+    libxext6 \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy virtualenv from builder stage
-COPY --from=builder /opt/venv /opt/venv
-ENV PATH="/opt/venv/bin:$PATH"
+# Create non-root system user and group for production container security
+RUN groupadd -g 1001 appgroup && \
+    useradd -u 1001 -g appgroup -m -s /bin/bash appuser
 
-# Create application user and set up workspace
-RUN useradd -m -u 1001 appuser
+# Set application working directory
 WORKDIR /app
 
-# Copy application source code
-COPY --chown=appuser:appuser . /app
+# Copy dependency definition first for optimal layer caching
+COPY requirements.txt /app/requirements.txt
 
-# Ensure Ultralytics cache directory exists and is writable by appuser
-RUN mkdir -p /home/appuser/.config/Ultralytics /app/static/videos \
-    && chown -R appuser:appuser /home/appuser /app
+# Install Python dependencies (torch, torchvision, fastapi, uvicorn, etc.)
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r /app/requirements.txt
 
+# Copy application source code with non-root ownership
+COPY --chown=appuser:appgroup . /app
+
+# Prepare writable runtime directories for static video feeds and Ultralytics cache
+RUN mkdir -p /app/static/videos /home/appuser/.config/Ultralytics && \
+    chown -R appuser:appgroup /app /home/appuser
+
+# Switch to non-root user
 USER appuser
 
-# Expose FastAPI port
+# Expose FastAPI application port
 EXPOSE 8000
 
-# Health Check for container lifecycle & Blue/Green orchestration
-HEALTHCHECK --interval=10s --timeout=5s --start-period=15s --retries=3 \
-    CMD curl -f http://localhost:${PORT:-8000}/health || exit 1
+# Container lifecycle health check
+HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
+    CMD curl -f http://localhost:8000/health || exit 1
 
-# Default entrypoint starts the FastAPI production server
-CMD ["sh", "-c", "exec uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000} --workers 2 --lifespan on"]
+# Start Uvicorn ASGI server in production mode
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]

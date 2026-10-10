@@ -9,7 +9,7 @@ dockerfilePath = "Dockerfile"
 buildCommand = "npm run build"
 
 [deploy]
-startCommand = "node server.js"
+startCommand = "npm run dev"
 healthcheckPath = "/api/health"
 healthcheckTimeout = 15
 restartPolicyType = "ON_FAILURE"

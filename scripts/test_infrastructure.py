@@ -25,7 +25,7 @@ def test_dockerfiles():
     # Verify Backend Dockerfile contents
     with open(backend_df, "r") as f:
         b_content = f.read()
-    assert "nvidia/cuda" in b_content, "Backend Dockerfile missing CUDA base"
+    assert "python:3.12-slim" in b_content or "nvidia/cuda" in b_content, "Backend Dockerfile missing base image"
     assert "torch" in b_content, "Backend Dockerfile missing torch"
     assert "YOLO_DEVICE" in b_content, "Backend Dockerfile missing YOLO_DEVICE"
     assert "HEALTHCHECK" in b_content, "Backend Dockerfile missing HEALTHCHECK"

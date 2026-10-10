@@ -15,18 +15,20 @@ restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 10
 
 # ==============================================================================
-# 1. FRONTEND SERVICE (Next.js build output)
+# 1. FRONTEND SERVICE (./jungle-bet-frontend, npm run dev)
 # ==============================================================================
 [services.frontend]
 name = "frontend"
 service = "frontend"
 type = "web"
-description = "Frontend (Next.js build output)"
-rootDirectory = "jungle-bet-frontend"
+description = "Frontend (./jungle-bet-frontend, npm run dev)"
+root = "./jungle-bet-frontend"
+rootDirectory = "./jungle-bet-frontend"
 builder = "DOCKERFILE"
 dockerfilePath = "jungle-bet-frontend/Dockerfile"
 buildCommand = "npm run build"
-startCommand = "node server.js"
+command = "npm run dev"
+startCommand = "npm run dev"
 healthcheckPath = "/api/health"
 healthcheckTimeout = 15
 restartPolicyType = "ON_FAILURE"
@@ -58,24 +60,28 @@ FLUTTERWAVE_WEBHOOK_SECRET = "${{FLUTTERWAVE_WEBHOOK_SECRET}}"
 # Top-level frontend table alias
 [frontend]
 name = "frontend"
-description = "Frontend (Next.js build output)"
-rootDirectory = "jungle-bet-frontend"
+description = "Frontend (./jungle-bet-frontend, npm run dev)"
+root = "./jungle-bet-frontend"
+rootDirectory = "./jungle-bet-frontend"
 buildCommand = "npm run build"
-startCommand = "node server.js"
+command = "npm run dev"
+startCommand = "npm run dev"
 port = 3000
 healthcheckPath = "/api/health"
 
 # ==============================================================================
-# 2. BACKEND SERVICE (FastAPI Python service)
+# 2. BACKEND SERVICE (root, uvicorn)
 # ==============================================================================
 [services.backend]
 name = "backend"
 service = "backend"
 type = "web"
-description = "Backend (FastAPI Python service)"
+description = "Backend (root, uvicorn)"
+root = "."
 rootDirectory = "."
 builder = "DOCKERFILE"
 dockerfilePath = "Dockerfile"
+command = "uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000} --workers 2"
 startCommand = "uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000} --workers 2"
 healthcheckPath = "/health"
 healthcheckTimeout = 15
@@ -100,23 +106,27 @@ MPESA_ENV = "${{MPESA_ENV}}"
 # Top-level backend table alias
 [backend]
 name = "backend"
-description = "Backend (FastAPI Python service)"
+description = "Backend (root, uvicorn)"
+root = "."
 rootDirectory = "."
+command = "uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000} --workers 2"
 startCommand = "uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000} --workers 2"
 port = 8000
 healthcheckPath = "/health"
 
 # ==============================================================================
-# 3. WORKER SERVICE (Celery Python service with GPU hint or high CPU)
+# 3. WORKER SERVICE (root, celery worker)
 # ==============================================================================
 [services.worker]
 name = "worker"
 service = "worker"
 type = "worker"
-description = "Worker (Celery Python service with GPU hint if available, or high CPU)"
+description = "Worker (root, celery worker)"
+root = "."
 rootDirectory = "."
 builder = "DOCKERFILE"
 dockerfilePath = "Dockerfile"
+command = "celery -A tasks worker --loglevel=info -O fair --max-tasks-per-child=50 --prefetch-multiplier=1"
 startCommand = "celery -A tasks worker --loglevel=info -O fair --max-tasks-per-child=50 --prefetch-multiplier=1"
 restartPolicyType = "ON_FAILURE"
 gpu = true
@@ -138,8 +148,10 @@ YOLO_DEVICE = "cuda"
 # Top-level worker table alias
 [worker]
 name = "worker"
-description = "Worker (Celery Python service with GPU hint if available, or high CPU)"
+description = "Worker (root, celery worker)"
+root = "."
 rootDirectory = "."
+command = "celery -A tasks worker --loglevel=info -O fair --max-tasks-per-child=50 --prefetch-multiplier=1"
 startCommand = "celery -A tasks worker --loglevel=info -O fair --max-tasks-per-child=50 --prefetch-multiplier=1"
 gpu = true
 gpu_hint = "nvidia-tesla-t4"
