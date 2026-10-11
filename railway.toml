@@ -1,5 +1,5 @@
 # ==============================================================================
-# Jungle Bet - Railway Multi-Service Deployment Specification
+# Jungle Bet - Railway Backend Service Deployment Configuration
 # ==============================================================================
 "$schema" = "https://railway.com/railway.schema.json"
 
@@ -15,62 +15,7 @@ restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 10
 
 # ==============================================================================
-# 1. FRONTEND SERVICE (./jungle-bet-frontend, npm run dev)
-# ==============================================================================
-[services.frontend]
-name = "frontend"
-service = "frontend"
-type = "web"
-description = "Frontend (./jungle-bet-frontend, npm run dev)"
-root = "./jungle-bet-frontend"
-rootDirectory = "./jungle-bet-frontend"
-builder = "DOCKERFILE"
-dockerfilePath = "jungle-bet-frontend/Dockerfile"
-buildCommand = "npm run build"
-command = "npm run dev"
-startCommand = "npm run dev"
-healthcheckPath = "/api/health"
-healthcheckTimeout = 15
-restartPolicyType = "ON_FAILURE"
-port = 3000
-
-[services.frontend.variables]
-NODE_ENV = "production"
-PORT = "3000"
-NEXTAUTH_URL = "${{RAILWAY_PUBLIC_DOMAIN}}"
-NEXTAUTH_SECRET = "${{NEXTAUTH_SECRET}}"
-AUTH_SECRET = "${{AUTH_SECRET}}"
-DATABASE_URL = "${{Postgres.DATABASE_URL}}"
-NEXT_PUBLIC_API_URL = "https://${{backend.RAILWAY_PUBLIC_DOMAIN}}"
-NEXT_PUBLIC_WS_URL = "wss://${{backend.RAILWAY_PUBLIC_DOMAIN}}/ws/leo-chat"
-NEXT_PUBLIC_APP_URL = "https://${{RAILWAY_PUBLIC_DOMAIN}}"
-STRIPE_SECRET_KEY = "${{STRIPE_SECRET_KEY}}"
-STRIPE_SECRET = "${{STRIPE_SECRET}}"
-STRIPE_WEBHOOK_SECRET = "${{STRIPE_WEBHOOK_SECRET}}"
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY = "${{NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY}}"
-MPESA_ENV = "${{MPESA_ENV}}"
-MPESA_CONSUMER_KEY = "${{MPESA_CONSUMER_KEY}}"
-MPESA_CONSUMER_SECRET = "${{MPESA_CONSUMER_SECRET}}"
-MPESA_PASSKEY = "${{MPESA_PASSKEY}}"
-MPESA_SHORTCODE = "${{MPESA_SHORTCODE}}"
-PAYSTACK_SECRET_KEY = "${{PAYSTACK_SECRET_KEY}}"
-FLUTTERWAVE_SECRET_KEY = "${{FLUTTERWAVE_SECRET_KEY}}"
-FLUTTERWAVE_WEBHOOK_SECRET = "${{FLUTTERWAVE_WEBHOOK_SECRET}}"
-
-# Top-level frontend table alias
-[frontend]
-name = "frontend"
-description = "Frontend (./jungle-bet-frontend, npm run dev)"
-root = "./jungle-bet-frontend"
-rootDirectory = "./jungle-bet-frontend"
-buildCommand = "npm run build"
-command = "npm run dev"
-startCommand = "npm run dev"
-port = 3000
-healthcheckPath = "/api/health"
-
-# ==============================================================================
-# 2. BACKEND SERVICE (root, uvicorn)
+# Backend Service Configuration (root directory, uvicorn)
 # ==============================================================================
 [services.backend]
 name = "backend"
@@ -88,21 +33,6 @@ healthcheckTimeout = 15
 restartPolicyType = "ON_FAILURE"
 port = 8000
 
-[services.backend.variables]
-DATABASE_URL = "${{Postgres.DATABASE_URL}}"
-REDIS_URL = "${{Redis.REDIS_URL}}"
-CELERY_BROKER_URL = "${{Redis.REDIS_URL}}"
-CELERY_RESULT_BACKEND = "${{Redis.REDIS_URL}}"
-NEXTAUTH_SECRET = "${{NEXTAUTH_SECRET}}"
-JWT_SECRET_KEY = "${{JWT_SECRET_KEY}}"
-STRIPE_SECRET = "${{STRIPE_SECRET}}"
-STRIPE_SECRET_KEY = "${{STRIPE_SECRET_KEY}}"
-MPESA_CONSUMER_KEY = "${{MPESA_CONSUMER_KEY}}"
-MPESA_CONSUMER_SECRET = "${{MPESA_CONSUMER_SECRET}}"
-MPESA_PASSKEY = "${{MPESA_PASSKEY}}"
-MPESA_SHORTCODE = "${{MPESA_SHORTCODE}}"
-MPESA_ENV = "${{MPESA_ENV}}"
-
 # Top-level backend table alias
 [backend]
 name = "backend"
@@ -113,115 +43,3 @@ command = "uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000} --workers 2"
 startCommand = "uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000} --workers 2"
 port = 8000
 healthcheckPath = "/health"
-
-# ==============================================================================
-# 3. WORKER SERVICE (root, celery worker)
-# ==============================================================================
-[services.worker]
-name = "worker"
-service = "worker"
-type = "worker"
-description = "Worker (root, celery worker)"
-root = "."
-rootDirectory = "."
-builder = "DOCKERFILE"
-dockerfilePath = "Dockerfile"
-command = "celery -A tasks worker --loglevel=info -O fair --max-tasks-per-child=50 --prefetch-multiplier=1"
-startCommand = "celery -A tasks worker --loglevel=info -O fair --max-tasks-per-child=50 --prefetch-multiplier=1"
-restartPolicyType = "ON_FAILURE"
-gpu = true
-gpu_hint = "nvidia-tesla-t4"
-gpu_required = false
-gpu_enabled = true
-cpu = "high"
-cpu_cores = 4
-limitOverride = { containers = { cpu = 4, memoryBytes = 8589934592 } }
-resources = { cpu = "high", memory = "8GB", gpu = "nvidia-tesla-t4" }
-
-[services.worker.variables]
-DATABASE_URL = "${{Postgres.DATABASE_URL}}"
-REDIS_URL = "${{Redis.REDIS_URL}}"
-CELERY_BROKER_URL = "${{Redis.REDIS_URL}}"
-CELERY_RESULT_BACKEND = "${{Redis.REDIS_URL}}"
-YOLO_DEVICE = "cuda"
-
-# Top-level worker table alias
-[worker]
-name = "worker"
-description = "Worker (root, celery worker)"
-root = "."
-rootDirectory = "."
-command = "celery -A tasks worker --loglevel=info -O fair --max-tasks-per-child=50 --prefetch-multiplier=1"
-startCommand = "celery -A tasks worker --loglevel=info -O fair --max-tasks-per-child=50 --prefetch-multiplier=1"
-gpu = true
-gpu_hint = "nvidia-tesla-t4"
-cpu = "high"
-cpu_cores = 4
-
-# ==============================================================================
-# 4. DATABASE PLUGIN (PostgreSQL plugin)
-# ==============================================================================
-[services.database]
-name = "database"
-service = "database"
-type = "database"
-description = "Database (PostgreSQL plugin)"
-plugin = "postgresql"
-image = "postgres:16-alpine"
-port = 5432
-
-[services.database.variables]
-POSTGRES_DB = "trafficracer_db"
-POSTGRES_USER = "trafficuser"
-POSTGRES_PASSWORD = "${{POSTGRES_PASSWORD}}"
-
-[services.postgres]
-name = "postgres"
-service = "postgres"
-type = "database"
-description = "Database (PostgreSQL plugin)"
-plugin = "postgresql"
-image = "postgres:16-alpine"
-port = 5432
-
-[services.postgres.variables]
-POSTGRES_DB = "trafficracer_db"
-POSTGRES_USER = "trafficuser"
-POSTGRES_PASSWORD = "${{POSTGRES_PASSWORD}}"
-
-# Top-level database table alias
-[database]
-name = "database"
-plugin = "postgresql"
-image = "postgres:16-alpine"
-port = 5432
-
-# ==============================================================================
-# 5. REDIS PLUGIN (Redis plugin)
-# ==============================================================================
-[services.redis]
-name = "redis"
-service = "redis"
-type = "redis"
-description = "Redis (Redis plugin)"
-plugin = "redis"
-image = "redis:7-alpine"
-port = 6379
-
-# Top-level redis table alias
-[redis]
-name = "redis"
-plugin = "redis"
-image = "redis:7-alpine"
-port = 6379
-
-# ==============================================================================
-# Railway Plugin Bindings
-# ==============================================================================
-[plugins.postgresql]
-name = "Postgres"
-plugin = "postgresql"
-
-[plugins.redis]
-name = "Redis"
-plugin = "redis"
