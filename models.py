@@ -1,6 +1,6 @@
 
 from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime, Enum, Boolean, update as sqlalchemy_update
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, synonym
 from sqlalchemy.dialects.postgresql import JSONB
 from database import Base
 import datetime
@@ -16,6 +16,7 @@ class BetStatus(str, enum.Enum):
 
 class TransactionType(str, enum.Enum):
   DEPOSIT = "deposit"
+  WITHDRAWAL = "withdrawal"
   BET_PLACED = "bet_placed"
   BET_WON = "bet_won"
 
@@ -32,7 +33,10 @@ class User(Base):
   phone = Column(String, unique=True, index=True, nullable=True)
   provider = Column(String, default="credentials", nullable=False)
   providerAccountId = Column(String, nullable=True, index=True)
-  v_coins = Column(Float, default=100.0)
+  balance_usd = Column(Float, default=0.0)
+  v_coins = synonym("balance_usd")
+  preferred_currency = Column(String, default="UGX")
+  location = Column(String, nullable=True)
   is_flagged = Column(Boolean, default=False)
   flag_reason = Column(String, nullable=True)
   is_banned = Column(Boolean, default=False)
@@ -93,7 +97,13 @@ class Transaction(Base):
   __tablename__ = "transactions"
   id = Column(Integer, primary_key=True, index=True)
   user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
-  amount = Column(Float, nullable=False)
+  amount = Column(Float, nullable=False)  # USD amount for deposits/withdrawals
+  usd_credited = synonym("amount")
+  local_currency_amount = Column(Float, nullable=True)
+  local_in = synonym("local_currency_amount")
+  exchange_rate_used = Column(Float, nullable=True)
+  spread_profit_captured = Column(Float, nullable=True)
+  spread_profit_kept = synonym("spread_profit_captured")
   type = Column(String, nullable=False)  # 'deposit', 'bet', 'win', 'withdrawal'
   source_wallet_id = Column(Integer, ForeignKey("wallets.id"), nullable=True)
   dest_wallet_id = Column(Integer, ForeignKey("wallets.id"), nullable=True)

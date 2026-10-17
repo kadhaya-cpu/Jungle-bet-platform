@@ -30,6 +30,95 @@ logger = logging.getLogger("main")
 logging.basicConfig(level=logging.INFO)
 
 # ==========================================
+#  NEW CODE: DYNAMIC FX & PROFIT TRACKING
+# ==========================================
+
+MIN_DEPOSIT_USD_EQUIVALENT = 2.0
+MIN_WITHDRAWAL_USD = 5.0
+
+FX_RATE_DEFAULTS = {
+    "UGX": (4040.0, 3800.0),
+    "TZS": (2600.0, 2400.0),
+    "KES": (130.0, 120.0),
+    "USD": (1.0, 1.0),
+}
+
+async def get_fx_rates(currency_code: str) -> tuple[float, float]:
+  """
+  Fetches the latest (market_rate, custom_rate) from the fx_rates table asynchronously.
+  """
+  code = (currency_code or "UGX").upper()
+  default_market, default_custom = FX_RATE_DEFAULTS.get(code, (4040.0, 3800.0))
+
+  try:
+    async with AsyncSessionLocal() as session:
+      query = text("""
+        SELECT market_rate, custom_rate FROM fx_rates 
+        WHERE currency_code = :code 
+        ORDER BY updated_at DESC LIMIT 1
+      """)
+      result = await session.execute(query, {"code": code})
+      row = result.fetchone()
+
+      if row:
+        return float(row[0]), float(row[1])
+      else:
+        logger.warning(f"FX rates not found for {code}, using defaults ({default_market}, {default_custom}).")
+        return default_market, default_custom
+  except Exception as e:
+    logger.error(f"Error fetching FX rates: {e}")
+    return default_market, default_custom
+
+async def get_custom_fx_rate(currency_code: str):
+  """
+  Fetches the latest custom rate from the fx_rates table asynchronously.
+  """
+  _, custom_rate = await get_fx_rates(currency_code)
+  return custom_rate
+
+async def calculate_and_store_spread(amount_usd: float, currency: str):
+  """
+  Calculates hidden profit and adds it to reserve_pool asynchronously.
+  """
+  try:
+    async with AsyncSessionLocal() as session:
+      # 1. Get Rates
+      query = text("""
+        SELECT market_rate, custom_rate FROM fx_rates 
+        WHERE currency_code = :code 
+        ORDER BY updated_at DESC LIMIT 1
+      """)
+      result = await session.execute(query, {"code": currency})
+      row = result.fetchone()
+
+      if row:
+        market_r = float(row[0])
+        custom_r = float(row[1])
+      else:
+        market_r, custom_r = FX_RATE_DEFAULTS.get((currency or "UGX").upper(), (4040.0, 3800.0))
+
+      # 2. Calculate Profit
+      spread_per_unit = market_r - custom_r
+      total_spread_profit = spread_per_unit * amount_usd
+
+      # 3. Update Reserve Pool
+      update_query = text("""
+        UPDATE reserve_pool 
+        SET total_spread_profit = total_spread_profit + :profit,
+            last_updated = NOW()
+        WHERE id = 1
+      """)
+      await session.execute(update_query, {"profit": total_spread_profit})
+      await session.commit()
+
+      logger.info(f"💰 Spread Profit Recorded: {total_spread_profit} {currency}")
+      return total_spread_profit
+  except Exception as e:
+    logger.error(f"Error recording spread: {e}")
+
+  return 0.0
+         
+# ==========================================
 # APP INITIALIZATION & SECURITY
 # ==========================================
 limiter = Limiter(key_func=get_remote_address)
@@ -51,6 +140,7 @@ app.add_middleware(FraudDetectionMiddleware)
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 bearer_scheme = HTTPBearer()
+optional_bearer_scheme = HTTPBearer(auto_error=False)
 
 SECRET_KEY = os.getenv("JWT_SECRET_KEY") or os.getenv("NEXTAUTH_SECRET") or "your-secret-key-change-in-production"
 ALGORITHM = "HS256"
@@ -109,6 +199,43 @@ async def health_check():
 async def init_db():
   async with engine.begin() as conn:
     await conn.run_sync(Base.metadata.create_all)
+    # Ensure new USD/FX columns and tables exist
+    await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS balance_usd DOUBLE PRECISION DEFAULT 0.0"))
+    await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS preferred_currency VARCHAR(10) DEFAULT 'UGX'"))
+    await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS location VARCHAR(255)"))
+    await conn.execute(text("ALTER TABLE transactions ADD COLUMN IF NOT EXISTS local_currency_amount DOUBLE PRECISION"))
+    await conn.execute(text("ALTER TABLE transactions ADD COLUMN IF NOT EXISTS exchange_rate_used DOUBLE PRECISION"))
+    await conn.execute(text("ALTER TABLE transactions ADD COLUMN IF NOT EXISTS spread_profit_captured DOUBLE PRECISION"))
+    await conn.execute(text("""
+      CREATE TABLE IF NOT EXISTS fx_rates (
+        id SERIAL PRIMARY KEY,
+        currency_code VARCHAR(10) UNIQUE NOT NULL,
+        market_rate DOUBLE PRECISION NOT NULL,
+        custom_rate DOUBLE PRECISION NOT NULL,
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      )
+    """))
+    await conn.execute(text("""
+      INSERT INTO fx_rates (currency_code, market_rate, custom_rate)
+      VALUES
+        ('UGX', 4040.0, 3800.0),
+        ('TZS', 2600.0, 2400.0),
+        ('KES', 130.0, 120.0),
+        ('USD', 1.0, 1.0)
+      ON CONFLICT (currency_code) DO NOTHING
+    """))
+    await conn.execute(text("""
+      CREATE TABLE IF NOT EXISTS reserve_pool (
+        id SERIAL PRIMARY KEY,
+        total_spread_profit DOUBLE PRECISION DEFAULT 0.0,
+        last_updated TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      )
+    """))
+    await conn.execute(text("""
+      INSERT INTO reserve_pool (id, total_spread_profit)
+      VALUES (1, 0.0)
+      ON CONFLICT (id) DO NOTHING
+    """))
   async with AsyncSessionLocal() as session:
     res = await session.execute(select(models.CameraFeed).where(models.CameraFeed.id.in_([1, 2, 3, 4, 5])))
     existing_feeds = {f.id: f for f in res.scalars().all()}
@@ -255,16 +382,44 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(b
 class UserCreate(BaseModel):
   username: str
   password: str
+  preferred_currency: Optional[str] = "UGX"
+  location: Optional[str] = None
 
 class UserLogin(BaseModel):
   username: str
   password: str
+
+class DepositRequest(BaseModel):
+  amount_local: float
+  currency: str = "UGX"
+  user_id: Optional[int] = None
+
+class WithdrawRequest(BaseModel):
+  amount_usd: Optional[float] = None
+  amount: Optional[float] = None
+  currency: Optional[str] = None
+  user_id: Optional[int] = None
 
 class BetPlace(BaseModel):
   bet_type: str
   criteria: dict
   amount: float
   feed_id: Optional[int] = None
+
+async def resolve_request_user(
+  user_id: Optional[int],
+  credentials: Optional[HTTPAuthorizationCredentials],
+  db: AsyncSession,
+) -> models.User:
+  if credentials and credentials.credentials:
+    return await get_current_user(credentials=credentials, db=db)
+  if user_id is not None:
+    res = await db.execute(select(models.User).where(models.User.id == user_id))
+    user = res.scalar_one_or_none()
+    if user:
+      return user
+    raise HTTPException(status_code=404, detail="User not found")
+  raise HTTPException(status_code=401, detail="Not authenticated")
 
 # ==========================================
 # ROUTES
@@ -279,12 +434,19 @@ async def register(user_data: UserCreate, request: Request, db: AsyncSession = D
   new_user = models.User(
      username=user_data.username,
      hashed_password=get_password_hash(user_data.password),
-     v_coins=100.0
+     balance_usd=0.0,
+     preferred_currency=user_data.preferred_currency or "UGX",
+     location=user_data.location,
   )
   db.add(new_user)
   await db.commit()
   await db.refresh(new_user)
-  return {"message": "User registered successfully", "v_coins": new_user.v_coins}
+  return {
+     "message": "User registered successfully",
+     "balance_usd": new_user.balance_usd,
+     "v_coins": new_user.balance_usd,
+     "preferred_currency": new_user.preferred_currency,
+  }
 
 @app.post("/login", response_model=dict)
 @limiter.limit("10/minute")
@@ -300,7 +462,181 @@ async def login(user_data: UserLogin, request: Request, db: AsyncSession = Depen
 
 @app.get("/me/balance", response_model=dict)
 async def get_balance(current_user: models.User = Depends(get_current_user)):
-  return {"username": current_user.username, "v_coins": current_user.v_coins}
+  return {
+     "username": current_user.username,
+     "balance_usd": current_user.balance_usd,
+     "v_coins": current_user.balance_usd,
+     "preferred_currency": current_user.preferred_currency,
+  }
+
+@app.post("/deposit", response_model=dict)
+@app.post("/api/deposit", response_model=dict)
+async def deposit_funds(
+  deposit_data: DepositRequest,
+  credentials: Optional[HTTPAuthorizationCredentials] = Depends(optional_bearer_scheme),
+  db: AsyncSession = Depends(get_db),
+):
+  """
+  Deposit Route (/deposit):
+  Captures FX spread IMMEDIATELY on deposit conversion using the Value Reduction method.
+  - Input: amount_local, currency
+  - Fetch market_rate and custom_rate from fx_rates
+  - spread_diff = market_rate - custom_rate
+  - Step A: real_usd = amount_local / market_rate
+  - Step B: profit_to_keep = real_usd * (spread_diff / market_rate)
+  - Step C: user_credit_usd = real_usd - profit_to_keep == (amount_local / market_rate) * (custom_rate / market_rate)
+  - Validate: user_credit_usd >= MIN_DEPOSIT_USD_EQUIVALENT (2.0)
+  - Update User Balance: balance_usd += user_credit_usd
+  - Record Transaction: type='deposit', local_in=amount_local, usd_credited=user_credit_usd, spread_profit_kept=(real_usd - user_credit_usd)
+  """
+  current_user = await resolve_request_user(deposit_data.user_id, credentials, db)
+
+  amount_local = float(deposit_data.amount_local)
+  currency = (deposit_data.currency or current_user.preferred_currency or "UGX").upper()
+
+  if amount_local <= 0:
+    raise HTTPException(status_code=400, detail="Deposit amount must be greater than 0")
+
+  # Fetch market_rate and custom_rate from fx_rates
+  market_rate, custom_rate = await get_fx_rates(currency)
+
+  # Calculate spread_diff, real_usd, and user_credit_usd (Value Reduction method)
+  spread_diff = market_rate - custom_rate
+  real_usd = amount_local / market_rate
+  profit_to_keep = real_usd * (spread_diff / market_rate)
+  user_credit_usd = (amount_local / market_rate) * (custom_rate / market_rate)
+  spread_profit_kept = real_usd - user_credit_usd
+
+  # Validate minimum deposit against user_credit_usd
+  if user_credit_usd < MIN_DEPOSIT_USD_EQUIVALENT:
+    raise HTTPException(
+      status_code=400,
+      detail=f"Minimum deposit is ${MIN_DEPOSIT_USD_EQUIVALENT:.2f} USD equivalent (credited: ${user_credit_usd:.2f} USD)."
+    )
+
+  # Update User Balance
+  current_user.balance_usd = (current_user.balance_usd or 0.0) + user_credit_usd
+  current_user.preferred_currency = currency
+
+  # Record Transaction
+  new_txn = models.Transaction(
+    user_id=current_user.id,
+    type="deposit",
+    local_in=amount_local,
+    usd_credited=user_credit_usd,
+    spread_profit_kept=spread_profit_kept,
+    exchange_rate_used=custom_rate,
+    status="completed",
+    description=(
+      f"Deposit {amount_local:.2f} {currency} -> ${user_credit_usd:.4f} USD "
+      f"(market={market_rate}, custom={custom_rate}, spread_kept=${spread_profit_kept:.4f})"
+    ),
+  )
+  db.add(new_txn)
+  await db.commit()
+  await db.refresh(current_user)
+  await db.refresh(new_txn)
+
+  # Record spread in reserve_pool as well
+  await calculate_and_store_spread(real_usd, currency)
+
+  return {
+    "message": "Deposit successful",
+    "status": "completed",
+    "type": "deposit",
+    "currency": currency,
+    "local_in": amount_local,
+    "amount_local": amount_local,
+    "market_rate": market_rate,
+    "custom_rate": custom_rate,
+    "spread_diff": spread_diff,
+    "real_usd": round(real_usd, 6),
+    "profit_to_keep": round(profit_to_keep, 6),
+    "usd_credited": round(user_credit_usd, 6),
+    "user_credit_usd": round(user_credit_usd, 6),
+    "spread_profit_kept": round(spread_profit_kept, 6),
+    "balance_usd": round(current_user.balance_usd, 6),
+    "transaction_id": new_txn.id,
+  }
+
+@app.post("/withdraw", response_model=dict)
+async def withdraw_funds(
+  withdraw_data: WithdrawRequest,
+  credentials: Optional[HTTPAuthorizationCredentials] = Depends(optional_bearer_scheme),
+  db: AsyncSession = Depends(get_db),
+):
+  """
+  Withdrawal Route (/withdraw):
+  User gives USD, gets Local currency calculated via custom_rate (lower payout).
+  Ensures double-sided spread profit.
+  - Validate: amount_usd >= MIN_WITHDRAWAL_USD (5.0)
+  - Validate: current_user.balance_usd >= amount_usd
+  - Calculate local payout = amount_usd * custom_rate
+  - Deduct balance_usd and record Transaction
+  """
+  current_user = await resolve_request_user(withdraw_data.user_id, credentials, db)
+
+  amount_usd = withdraw_data.amount_usd if withdraw_data.amount_usd is not None else withdraw_data.amount
+  if amount_usd is None or amount_usd <= 0:
+    raise HTTPException(status_code=400, detail="Withdrawal amount must be greater than 0")
+
+  amount_usd = float(amount_usd)
+  if amount_usd < MIN_WITHDRAWAL_USD:
+    raise HTTPException(
+      status_code=400,
+      detail=f"Minimum withdrawal is ${MIN_WITHDRAWAL_USD:.2f} USD."
+    )
+
+  if (current_user.balance_usd or 0.0) < amount_usd:
+    raise HTTPException(status_code=400, detail="Insufficient balance")
+
+  currency = (withdraw_data.currency or current_user.preferred_currency or "UGX").upper()
+  market_rate, custom_rate = await get_fx_rates(currency)
+
+  # User gives USD, gets Local calculated via custom_rate (lower payout)
+  local_payout = amount_usd * custom_rate
+  spread_diff = market_rate - custom_rate
+  spread_profit_usd = amount_usd * (spread_diff / market_rate) if market_rate > 0 else 0.0
+  spread_profit_local = spread_diff * amount_usd
+
+  # Update User Balance
+  current_user.balance_usd = (current_user.balance_usd or 0.0) - amount_usd
+
+  # Record Transaction
+  new_txn = models.Transaction(
+    user_id=current_user.id,
+    type="withdrawal",
+    amount=amount_usd,
+    local_currency_amount=local_payout,
+    exchange_rate_used=custom_rate,
+    spread_profit_captured=spread_profit_usd,
+    status="completed",
+    description=(
+      f"Withdrawal ${amount_usd:.2f} USD -> {local_payout:.2f} {currency} @ {custom_rate}"
+    ),
+  )
+  db.add(new_txn)
+  await db.commit()
+  await db.refresh(current_user)
+  await db.refresh(new_txn)
+
+  await calculate_and_store_spread(amount_usd, currency)
+
+  return {
+    "message": "Withdrawal successful",
+    "status": "completed",
+    "type": "withdrawal",
+    "amount_usd": amount_usd,
+    "currency": currency,
+    "market_rate": market_rate,
+    "custom_rate": custom_rate,
+    "local_currency_amount": round(local_payout, 2),
+    "payout_local": round(local_payout, 2),
+    "spread_profit_captured": round(spread_profit_usd, 6),
+    "spread_profit_local": round(spread_profit_local, 2),
+    "balance_usd": round(current_user.balance_usd, 6),
+    "transaction_id": new_txn.id,
+  }
 
 @app.post("/bet/place", response_model=dict)
 @limiter.limit("20/minute")
@@ -308,7 +644,7 @@ async def place_bet(bet_data: BetPlace, request: Request, current_user: models.U
   if getattr(current_user, "is_banned", False):
      raise HTTPException(status_code=403, detail="This account has been banned by Jungle Bet Security & Fraud Prevention.")
 
-  if current_user.v_coins < bet_data.amount:
+  if (current_user.balance_usd or 0.0) < bet_data.amount:
      raise HTTPException(status_code=400, detail="Insufficient balance")
 
   # Evaluate fraud betting rate hook (>10 bets in 1 minute)
