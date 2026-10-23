@@ -1,5 +1,5 @@
 /**
- * financial-core-and-mobile.test.ts - Test Suite for Jungle Bet Financial Core & Mobile Monitoring
+ * financial-core-and-mobile.test.ts - Test Suite for RUSH HOUR BET Financial Core & Mobile Monitoring
  * 
  * Tests:
  * 1. Segregated Wallets & Types ('PLAYER' vs 'HOUSE_REVENUE')
@@ -30,7 +30,7 @@ function assert(condition: boolean, message: string) {
 
 async function runTestSuite() {
   console.log("\n=======================================================");
-  console.log("📱 JUNGLE BET FINANCIAL CORE & MOBILE MONITORING TESTS");
+  console.log("📱 RUSH HOUR BET FINANCIAL CORE & MOBILE MONITORING TESTS");
   console.log("=======================================================\n");
 
   // --- 1. Testing Wallet Segregation & Types ---

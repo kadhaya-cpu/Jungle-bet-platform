@@ -1,5 +1,5 @@
 """
-tasks.py - Celery Task Queue for Jungle Bet
+tasks.py - Celery Task Queue for RUSH HOUR BET
 Handles async Computer Vision video processing, vehicle detection/counting, and bet resolution.
 """
 

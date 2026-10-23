@@ -1,10 +1,10 @@
 """
-treasury_service.py - Jungle Bet Treasury Management and Safe Withdrawal System
+treasury_service.py - RUSH HOUR BET Treasury Management and Safe Withdrawal System
 
 TREASURY LOGIC CORE:
 - MIN_SAFETY_FLOAT_RATIO = 0.25 (25% safety float)
 - calculate_safe_withdrawal():
-  * Total_Liabilities = Sum of all active user wallet balances
+  * Total_Liabilities = Sum of all active user wallet balances (in USD)
   * Required_Float = Total_Liabilities * MIN_SAFETY_FLOAT_RATIO
   * Available_Profit = Max(0, House_Revenue_Wallet_Balance - Required_Float)
   * Returns Available_Profit as maximum safe amount to withdraw
@@ -36,7 +36,10 @@ logger.setLevel(logging.INFO)
 # Global constants
 MIN_SAFETY_FLOAT_RATIO: float = 0.25
 MIN_SAFETY_FLOAT_PERCENTAGE: float = MIN_SAFETY_FLOAT_RATIO
-OPERATOR_BANK_DEFAULT: str = os.getenv("OPERATOR_BANK_ACCOUNT", "Stanbic Bank - IBAN GB29JUNGLE8839210")
+OPERATOR_BANK_DEFAULT: str = (
+    os.getenv("RUSH_HOUR_BET_OPERATOR_BANK_ACCOUNT")
+    or os.getenv("OPERATOR_BANK_ACCOUNT", "Stanbic Bank - IBAN GB29JUNGLE8839210")
+)
 
 
 class ComplianceViolationError(Exception):

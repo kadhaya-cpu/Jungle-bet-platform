@@ -12,7 +12,7 @@ else
 fi
 
 echo "============================================================"
-echo " Jungle Bet: FastAPI Backend Launcher"
+echo " RUSH HOUR BET: FastAPI Backend Launcher"
 echo "============================================================"
 echo "Starting FastAPI on port 8000 with auto-reload..."
 

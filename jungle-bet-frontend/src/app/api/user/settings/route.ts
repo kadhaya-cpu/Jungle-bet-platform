@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
       const deleted = authUserService.deleteUser(userId);
       return NextResponse.json({
         success: deleted,
-        message: "Your Jungle Bet account has been permanently deleted.",
+        message: "Your RUSH HOUR BET account has been permanently deleted.",
       });
     }
 

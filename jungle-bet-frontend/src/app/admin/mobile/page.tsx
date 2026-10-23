@@ -342,7 +342,7 @@ export default function AdminMobilePage() {
             <ShieldAlert className="w-8 h-8 text-[var(--jungle-green)]" />
           </div>
           <h1 className="text-2xl font-black tracking-tight bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent">
-            JUNGLE BET MOBILE OPS
+            RUSH HOUR BET MOBILE OPS
           </h1>
           <p className="text-xs text-gray-400 mt-1 uppercase tracking-widest font-mono">
             Financial Core &amp; Incident Monitoring
@@ -400,7 +400,7 @@ export default function AdminMobilePage() {
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-sm font-black tracking-tight">JUNGLE BET OPS</span>
+              <span className="text-sm font-black tracking-tight">RUSH HOUR BET OPS</span>
               <span className="flex items-center gap-1 text-[9px] font-mono px-1.5 py-0.5 rounded bg-[var(--jungle-green)]/20 text-[var(--jungle-green)] border border-[var(--jungle-green)]/30">
                 <span className="w-1.5 h-1.5 rounded-full bg-[var(--jungle-green)] animate-ping" />
                 LIVE

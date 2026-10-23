@@ -1,6 +1,6 @@
-# Jungle Bet — Production Deployment Checklist
+# RUSH HOUR BET — Production Deployment Checklist
 
-This guide covers end-to-end steps to deploy the **Jungle Bet** frontend and connect it to the production FastAPI/Railway backend (`https://jungle-bet-platform-production.up.railway.app`).
+This guide covers end-to-end steps to deploy the **RUSH HOUR BET** frontend and connect it to the production FastAPI/Railway backend (`https://jungle-bet-platform-production.up.railway.app`).
 
 ---
 
@@ -74,7 +74,7 @@ This guide covers end-to-end steps to deploy the **Jungle Bet** frontend and con
 
 ### Option B: Deploying Frontend + Backend on Railway
 
-1. Log in to [Railway](https://railway.app) and open your **Jungle Bet** project.
+1. Log in to [Railway](https://railway.app) and open your **RUSH HOUR BET** project.
 2. Click **+ New → GitHub Repo** and select your repository.
 3. In the service **Settings**:
    - Set **Root Directory** to `/frontend`.

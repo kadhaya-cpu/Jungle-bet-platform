@@ -138,7 +138,7 @@ export default function AuthModal({
 
         await detectGeoCurrency(fullPhone);
         await fetchBalance();
-        toast.success("Welcome to Jungle Bet!");
+        toast.success("Welcome to RUSH HOUR BET!");
         onClose();
       } else {
         const result = await signIn("credentials", {
@@ -153,7 +153,7 @@ export default function AuthModal({
         } else {
           await detectGeoCurrency(fullPhone);
           await fetchBalance();
-          toast.success("Welcome back to Jungle Bet!");
+          toast.success("Welcome back to RUSH HOUR BET!");
           onClose();
         }
       }
@@ -196,7 +196,7 @@ export default function AuthModal({
         <div className="flex flex-col items-center text-center mb-5 select-none">
           {/* LARGE STYLISH TEXT LOGO WITH BLUE-TO-GREEN GRADIENT SCALE */}
           <span className="font-black text-3xl tracking-tight uppercase italic leading-none bg-gradient-to-r from-blue-600 via-teal-500 to-emerald-500 bg-clip-text text-transparent drop-shadow-sm">
-            JUNGLE BET
+            RUSH HOUR BET
           </span>
           <div className="flex items-center gap-1.5 mt-1.5">
             <span className="relative flex h-2 w-2">
@@ -209,7 +209,7 @@ export default function AuthModal({
           </div>
 
           <h2 className="text-lg sm:text-xl font-black text-gray-900 tracking-tight mt-2.5">
-            {mode === "login" ? "Log In to Your Account" : "Get Started with Jungle Bet"}
+            {mode === "login" ? "Log In to Your Account" : "Get Started with RUSH HOUR BET"}
           </h2>
           <p className="text-xs text-gray-500 mt-0.5 font-medium">
             {mode === "login"

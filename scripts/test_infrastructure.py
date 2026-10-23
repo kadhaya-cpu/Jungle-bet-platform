@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-test_infrastructure.py - Comprehensive Verification for Jungle Bet Docker, Blue/Green & Celery Autoscaling
+test_infrastructure.py - Comprehensive Verification for RUSH HOUR BET Docker, Blue/Green & Celery Autoscaling
 """
 
 import os

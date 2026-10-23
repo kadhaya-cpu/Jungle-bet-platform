@@ -14,7 +14,7 @@ else
 fi
 
 echo "============================================================"
-echo " Jungle Bet: YOLOv8-Tuned Celery Worker Launcher"
+echo " RUSH HOUR BET: YOLOv8-Tuned Celery Worker Launcher"
 echo "============================================================"
 
 # Automatic Concurrency and Hardware Detection

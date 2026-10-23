@@ -1,5 +1,5 @@
 """
-test_financial_core.py - Full Verification Test Suite for Jungle Bet Financial Core & Mobile Monitoring
+test_financial_core.py - Full Verification Test Suite for RUSH HOUR BET Financial Core & Mobile Monitoring
 
 Validates:
 1. Wallet Segregation (PLAYER vs HOUSE_REVENUE)
@@ -40,7 +40,7 @@ class TestFinancialCore(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         print("\n" + "=" * 65)
-        print("🏦 JUNGLE BET FINANCIAL CORE & MOBILE MONITORING TEST SUITE")
+        print("🏦 RUSH HOUR BET FINANCIAL CORE & MOBILE MONITORING TEST SUITE")
         print("=" * 65 + "\n")
         cls.client = TestClient(app)
 

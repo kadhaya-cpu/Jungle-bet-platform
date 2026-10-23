@@ -1,34 +1,26 @@
-import type { Config } from "tailwindcss";
-
-const config: Config = {
+/** @type {import('tailwindcss').Config} */
+export default {
+  darkMode: 'class',
   content: [
-    "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
-    "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
-    "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
+    './index.html',
+    './src/**/*.{js,ts,jsx,tsx}',
   ],
   theme: {
     extend: {
       colors: {
-        "jungle-green": "#00e5b9",
-        surface: "#0f1624",
+        gold: {
+          DEFAULT: '#FFD700',
+          hover: '#FFE55C',
+        },
+        jungle: {
+          bg: '#0f0f0f',
+          card: '#1a1a1a',
+        },
       },
       fontFamily: {
-        sans: ["var(--font-inter)", "Inter", "system-ui", "sans-serif"],
-        heading: ["var(--font-poppins)", "Poppins", "sans-serif"],
-        poppins: ["var(--font-poppins)", "Poppins", "sans-serif"],
-        inter: ["var(--font-inter)", "Inter", "sans-serif"],
+        sans: ['Inter', 'Poppins', 'sans-serif'],
       },
     },
   },
-  plugins: [
-    function ({ addBase }: { addBase: (styles: Record<string, Record<string, string>>) => void }) {
-      addBase({
-        'input[type="text"], input[type="email"], input[type="tel"], input[type="password"], input[type="number"], input[type="search"], input': {
-          color: "#e5e7eb", // text-gray-200 by default for dark mode visibility
-        },
-      });
-    },
-  ],
+  plugins: [],
 };
-
-export default config;

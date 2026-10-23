@@ -200,7 +200,7 @@ export function detectUserCountry(input?: {
     }
   }
 
-  return "UG"; // Default to Jungle Bet core Africa market (Uganda)
+  return "UG"; // Default to RUSH HOUR BET core Africa market (Uganda)
 }
 
 export interface SuggestedPaymentMethod {
@@ -368,8 +368,8 @@ export class MtnMomoUgandaProvider implements IPaymentProvider {
             partyIdType: "MSISDN",
             partyId: formattedPhone,
           },
-          payerMessage: "Jungle Bet Live Wager",
-          payeeNote: "Jungle Bet Deposit",
+          payerMessage: "RUSH HOUR BET Live Wager",
+          payeeNote: "RUSH HOUR BET Deposit",
         },
         {
           headers: {
@@ -545,7 +545,7 @@ export class MpesaKenyaProvider implements IPaymentProvider {
           PhoneNumber: formattedPhone,
           CallBackURL: callbackUrl,
           AccountReference: request.paymentId.substring(0, 12),
-          TransactionDesc: "Jungle Bet Wagering",
+          TransactionDesc: "RUSH HOUR BET Wagering",
         },
         {
           headers: {
@@ -759,7 +759,7 @@ export class StripeProvider implements IPaymentProvider {
       const paymentIntent = await this.stripe!.paymentIntents.create({
         amount: amountInCents,
         currency: (request.currency || "USD").toLowerCase(),
-        description: `Jungle Bet - ${request.betData ? "Bet Wager" : "Wallet Deposit"}`,
+        description: `RUSH HOUR BET - ${request.betData ? "Bet Wager" : "Wallet Deposit"}`,
         metadata: {
           paymentId: request.paymentId,
           userId: request.userId,
@@ -1081,7 +1081,7 @@ export class FlutterwaveProvider implements IPaymentProvider {
             name: request.customerName || "Jungle Racer",
           },
           customizations: {
-            title: "Jungle Bet Live Wagering",
+            title: "RUSH HOUR BET Live Wagering",
             description: "High-octane racing credits",
             logo: "https://junglebet.io/favicon.ico",
           },
@@ -1229,7 +1229,7 @@ export class PaypalProvider implements IPaymentProvider {
           purchase_units: [
             {
               reference_id: request.paymentId,
-              description: "Jungle Bet Credits",
+              description: "RUSH HOUR BET Credits",
               amount: {
                 currency_code: request.currency || "USD",
                 value: request.amount.toFixed(2),
@@ -1328,19 +1328,19 @@ export class BankTransferProvider implements IPaymentProvider {
       const converted = convertUSDToCurrency(request.amount, "UGX");
       convertedAmount = converted.amount;
       currency = "UGX";
-      bankDetails = `Stanbic Bank Uganda\nAccount: 9030018829401\nName: Jungle Bet Interactive Ltd\nRef: ${reference}`;
+      bankDetails = `Stanbic Bank Uganda\nAccount: 9030018829401\nName: RUSH HOUR BET Interactive Ltd\nRef: ${reference}`;
     } else if (request.country === "KE") {
       const converted = convertUSDToCurrency(request.amount, "KES");
       convertedAmount = converted.amount;
       currency = "KES";
-      bankDetails = `Equity Bank Kenya\nAccount: 0180299482710\nName: Jungle Bet East Africa Ltd\nRef: ${reference}`;
+      bankDetails = `Equity Bank Kenya\nAccount: 0180299482710\nName: RUSH HOUR BET East Africa Ltd\nRef: ${reference}`;
     } else if (request.country === "NG") {
       const converted = convertUSDToCurrency(request.amount, "NGN");
       convertedAmount = converted.amount;
       currency = "NGN";
-      bankDetails = `GTBank Nigeria\nAccount: 0148293810\nName: Jungle Bet Gaming NG\nRef: ${reference}`;
+      bankDetails = `GTBank Nigeria\nAccount: 0148293810\nName: RUSH HOUR BET Gaming NG\nRef: ${reference}`;
     } else {
-      bankDetails = `JPMorgan Chase USA (SWIFT)\nAccount: 8829104820\nRouting: 021000021\nSWIFT: CHASUS33\nName: Jungle Bet Global LLC\nRef: ${reference}`;
+      bankDetails = `JPMorgan Chase USA (SWIFT)\nAccount: 8829104820\nRouting: 021000021\nSWIFT: CHASUS33\nName: RUSH HOUR BET Global LLC\nRef: ${reference}`;
     }
 
     return {

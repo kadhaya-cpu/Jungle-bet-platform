@@ -11,8 +11,12 @@ raw_db_url = (
     or os.getenv("DATABASE_PRIVATE_URL")
     or os.getenv("DATABASE_PUBLIC_URL")
     or os.getenv("POSTGRES_URL")
-    or "postgresql+asyncpg://trafficuser:mypassword@localhost:5432/trafficracer_db"
 )
+if not raw_db_url:
+    raise RuntimeError(
+        "CRITICAL SECURITY ERROR: 'DATABASE_URL' environment variable is missing. "
+        "Please configure DATABASE_URL in your environment before starting the backend."
+    )
 if raw_db_url.startswith("postgres://"):
     SQLALCHEMY_DATABASE_URL = raw_db_url.replace("postgres://", "postgresql+asyncpg://", 1)
 elif raw_db_url.startswith("postgresql://"):

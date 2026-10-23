@@ -130,7 +130,7 @@ export const Login: React.FC = () => {
         </form>
 
         <div className="pt-4 border-t border-white/10 text-center text-xs text-gray-400">
-          Don&apos;t have a Jungle Bet account yet?{' '}
+          Don&apos;t have a RUSH HOUR BET account yet?{' '}
           <Link to="/register" className="text-[#FFD700] font-bold hover:underline">
             Create Account
           </Link>

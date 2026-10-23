@@ -47,7 +47,7 @@ export async function sendOtpSms(
 
   try {
     const response = await client.messages.create({
-      body: `Your Jungle Bet verification code is: ${generatedCode}. Valid for 10 minutes. Keep your garage secure!`,
+      body: `Your RUSH HOUR BET verification code is: ${generatedCode}. Valid for 10 minutes. Keep your garage secure!`,
       from: fromPhone,
       to: toPhone,
     });

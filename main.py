@@ -1,24 +1,58 @@
 from fastapi import FastAPI, Request, HTTPException, Depends, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse, FileResponse, JSONResponse
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import Response
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
-from pydantic import BaseModel
+from slowapi.middleware import SlowAPIMiddleware
+from pydantic import BaseModel, EmailStr, conint, confloat
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy import select, desc, text
 import os
+import sys
+import traceback
 from dotenv import load_dotenv
 
 load_dotenv()
 from typing import Optional, List, Dict, Any, Union
 import models
 from database import engine, get_db, Base, AsyncSessionLocal
-from passlib.context import CryptContext
+from utils.security import (
+    BCRYPT_ROUNDS,
+    pwd_context,
+    verify_password,
+    get_password_hash,
+    redact_sensitive_data,
+    strip_password_fields,
+)
+from schemas import (
+    UserCreate,
+    UserLogin,
+    TokenRefreshRequest,
+    DepositRequest,
+    WithdrawRequest,
+    WithdrawPreviewRequest,
+    FeedOverrideRequest,
+    FeedFailoverRequest,
+    BetPlace,
+    FraudCheckRequest,
+    AdminBanPayload,
+    ProcessBetPayload,
+    DailySettlementPayload,
+    TestAlertPayload,
+    TreasurySweepPayload,
+    WithdrawalRequestPayload,
+    PayoutActionPayload,
+    sanitize_html_string,
+)
+from services.smart_feed_agent import smart_feed_agent
 from jose import jwt, JWTError
 import datetime
 from tasks import process_traffic_video, process_video_blurring, process_live_feed
-from fastapi.responses import StreamingResponse, FileResponse
 import asyncio
 import json
 import time
@@ -26,22 +60,182 @@ import logging
 import hmac
 import hashlib
 
+# ==========================================
+# 6. AUDIT LOGGING & MONITORING CONFIGURATION
+# ==========================================
+LOG_FORMAT = "%(asctime)s | %(levelname)s | %(name)s | %(message)s"
+logging.basicConfig(
+    level=logging.INFO,
+    format=LOG_FORMAT,
+    handlers=[logging.StreamHandler(sys.stdout)],
+)
 logger = logging.getLogger("main")
-logging.basicConfig(level=logging.INFO)
+audit_logger = logging.getLogger("jungle_bet.audit")
+critical_logger = logging.getLogger("jungle_bet.critical")
+rush_audit_logger = logging.getLogger("rush_hour_bet.audit")
+rush_critical_logger = logging.getLogger("rush_hour_bet.critical")
+
+try:
+    log_file_path = os.getenv("RUSH_HOUR_BET_AUDIT_LOG_FILE") or os.getenv(
+        "AUDIT_LOG_FILE",
+        os.path.join(os.path.dirname(os.path.abspath(__file__)), "security_audit.log"),
+    )
+    file_handler = logging.FileHandler(log_file_path)
+    file_handler.setFormatter(logging.Formatter(LOG_FORMAT))
+    audit_logger.addHandler(file_handler)
+    critical_logger.addHandler(file_handler)
+    rush_audit_logger.addHandler(file_handler)
+    rush_critical_logger.addHandler(file_handler)
+except Exception:
+    pass
+
+
+def get_client_ip(request: Request) -> str:
+    """Extract client IP address with X-Forwarded-For proxy awareness."""
+    forwarded_for = request.headers.get("X-Forwarded-For") or request.headers.get("x-forwarded-for")
+    if forwarded_for:
+        return forwarded_for.split(",")[0].strip()
+    return get_remote_address(request) or (request.client.host if request.client else "unknown")
+
+
+def log_critical_event(
+    event_type: str,
+    message: str,
+    request: Optional[Request] = None,
+    user_id: Optional[Union[int, str]] = None,
+    details: Optional[Dict[str, Any]] = None,
+):
+    """Log CRITICAL security events separately (Failed logins, Large withdrawals, Ban actions)."""
+    timestamp = datetime.datetime.now(datetime.timezone.utc).isoformat()
+    client_ip = get_client_ip(request) if request else "system"
+    user_agent = request.headers.get("user-agent", "unknown") if request else "system"
+    endpoint = f"{request.method} {request.url.path}" if request else "internal"
+    safe_details = redact_sensitive_data(details or {})
+
+    log_payload = {
+        "timestamp": timestamp,
+        "level": "CRITICAL",
+        "event_type": event_type,
+        "client_ip": client_ip,
+        "user_agent": user_agent,
+        "endpoint": endpoint,
+        "user_id": user_id,
+        "message": message,
+        "details": safe_details,
+    }
+    critical_logger.critical("SECURITY_CRITICAL_EVENT | %s", json.dumps(log_payload))
+    rush_critical_logger.critical("SECURITY_CRITICAL_EVENT | %s", json.dumps(log_payload))
+
 
 # ==========================================
-#  NEW CODE: DYNAMIC FX & PROFIT TRACKING
+# 7. ENVIRONMENT VARIABLE SAFETY & STARTUP CHECK
+# ==========================================
+DATABASE_URL = os.getenv("RUSH_HOUR_BET_DATABASE_URL") or os.getenv("DATABASE_URL")
+SECRET_KEY = os.getenv("RUSH_HOUR_BET_SECRET_KEY") or os.getenv("SECRET_KEY") or os.getenv("JWT_SECRET_KEY")
+JWT_ALGORITHM = os.getenv("RUSH_HOUR_BET_JWT_ALGORITHM") or os.getenv("JWT_ALGORITHM", "HS256")
+ALGORITHM = JWT_ALGORITHM
+ACCESS_TOKEN_EXPIRE_MINUTES = 60
+
+INSECURE_DEFAULT_SECRETS = {
+    "",
+    "your-secret-key-change-in-production",
+    "jungle-bet-super-secret-jwt-key-change-in-production-2026",
+    "rush-hour-bet-super-secret-jwt-key-change-in-production-2026",
+    "changeme",
+    "default",
+    "secret",
+}
+
+
+def validate_security_env():
+    """
+    Startup safety check: Ensures DATABASE_URL, SECRET_KEY, and JWT_ALGORITHM are loaded
+    from os.getenv and crashes immediately if SECRET_KEY is missing or set to a default value.
+    """
+    current_secret = (
+        os.getenv("RUSH_HOUR_BET_SECRET_KEY")
+        or os.getenv("SECRET_KEY")
+        or os.getenv("JWT_SECRET_KEY")
+    )
+    if not current_secret or current_secret.strip() in INSECURE_DEFAULT_SECRETS:
+        err_msg = (
+            "FATAL STARTUP ERROR: 'SECRET_KEY' environment variable is missing or set to an insecure default value. "
+            "Set a strong cryptographic SECRET_KEY before launching the application."
+        )
+        critical_logger.critical(err_msg)
+        raise RuntimeError(err_msg)
+
+    current_db_url = os.getenv("RUSH_HOUR_BET_DATABASE_URL") or os.getenv("DATABASE_URL")
+    if not current_db_url:
+        err_msg = (
+            "FATAL STARTUP ERROR: 'DATABASE_URL' environment variable is missing. "
+            "Configure DATABASE_URL before launching the application."
+        )
+        critical_logger.critical(err_msg)
+        raise RuntimeError(err_msg)
+
+
+validate_security_env()
+
+# ==========================================
+#  DYNAMIC FX, USD-ONLY ACCOUNTING & PROFIT TRACKING
 # ==========================================
 
+INTERNAL_ACCOUNTING_CURRENCY = "USD"
 MIN_DEPOSIT_USD_EQUIVALENT = 2.0
 MIN_WITHDRAWAL_USD = 5.0
 
 FX_RATE_DEFAULTS = {
+    "USD": (1.0, 1.0),
+    "EUR": (0.92, 0.89),
+    "GBP": (0.79, 0.76),
     "UGX": (4040.0, 3800.0),
     "TZS": (2600.0, 2400.0),
     "KES": (130.0, 120.0),
-    "USD": (1.0, 1.0),
+    "NGN": (1600.0, 1500.0),
+    "JPY": (152.0, 146.0),
+    "CNY": (7.25, 6.95),
+    "INR": (84.0, 80.5),
+    "THB": (35.5, 34.0),
+    "SGD": (1.35, 1.30),
+    "MAD": (10.0, 9.55),
+    "EGP": (49.0, 46.5),
+    "ZAR": (18.2, 17.4),
+    "BRL": (5.65, 5.40),
+    "MXN": (19.8, 19.0),
+    "CAD": (1.38, 1.33),
+    "CHF": (0.88, 0.85),
+    "CZK": (23.2, 22.3),
+    "AUD": (1.52, 1.46),
+    "NZD": (1.66, 1.59),
 }
+
+SUPPORTED_CURRENCIES_CATALOG: List[Dict[str, Any]] = [
+    {"code": "USD", "name": "US Dollar", "symbol": "$", "country_code": "US", "flag": "🇺🇸", "region": "Americas"},
+    {"code": "EUR", "name": "Euro", "symbol": "€", "country_code": "EU", "flag": "🇪🇺", "region": "Europe"},
+    {"code": "GBP", "name": "British Pound", "symbol": "£", "country_code": "GB", "flag": "🇬🇧", "region": "Europe"},
+    {"code": "UGX", "name": "Ugandan Shilling", "symbol": "USh", "country_code": "UG", "flag": "🇺🇬", "region": "Africa"},
+    {"code": "KES", "name": "Kenyan Shilling", "symbol": "KSh", "country_code": "KE", "flag": "🇰🇪", "region": "Africa"},
+    {"code": "TZS", "name": "Tanzanian Shilling", "symbol": "TSh", "country_code": "TZ", "flag": "🇹🇿", "region": "Africa"},
+    {"code": "NGN", "name": "Nigerian Naira", "symbol": "₦", "country_code": "NG", "flag": "🇳🇬", "region": "Africa"},
+    {"code": "JPY", "name": "Japanese Yen", "symbol": "¥", "country_code": "JP", "flag": "🇯🇵", "region": "Asia"},
+    {"code": "CNY", "name": "Chinese Yuan", "symbol": "¥", "country_code": "CN", "flag": "🇨🇳", "region": "Asia"},
+    {"code": "INR", "name": "Indian Rupee", "symbol": "₹", "country_code": "IN", "flag": "🇮🇳", "region": "Asia"},
+    {"code": "THB", "name": "Thai Baht", "symbol": "฿", "country_code": "TH", "flag": "🇹🇭", "region": "Asia"},
+    {"code": "SGD", "name": "Singapore Dollar", "symbol": "S$", "country_code": "SG", "flag": "🇸🇬", "region": "Asia"},
+    {"code": "MAD", "name": "Moroccan Dirham", "symbol": "DH", "country_code": "MA", "flag": "🇲🇦", "region": "Africa"},
+    {"code": "EGP", "name": "Egyptian Pound", "symbol": "E£", "country_code": "EG", "flag": "🇪🇬", "region": "Africa"},
+    {"code": "ZAR", "name": "South African Rand", "symbol": "R", "country_code": "ZA", "flag": "🇿🇦", "region": "Africa"},
+    {"code": "BRL", "name": "Brazilian Real", "symbol": "R$", "country_code": "BR", "flag": "🇧🇷", "region": "Americas"},
+    {"code": "MXN", "name": "Mexican Peso", "symbol": "Mex$", "country_code": "MX", "flag": "🇲🇽", "region": "Americas"},
+    {"code": "CAD", "name": "Canadian Dollar", "symbol": "C$", "country_code": "CA", "flag": "🇨🇦", "region": "Americas"},
+    {"code": "CHF", "name": "Swiss Franc", "symbol": "CHF", "country_code": "CH", "flag": "🇨🇭", "region": "Europe"},
+    {"code": "CZK", "name": "Czech Koruna", "symbol": "Kč", "country_code": "CZ", "flag": "🇨🇿", "region": "Europe"},
+    {"code": "AUD", "name": "Australian Dollar", "symbol": "A$", "country_code": "AU", "flag": "🇦🇺", "region": "Oceania"},
+    {"code": "NZD", "name": "New Zealand Dollar", "symbol": "NZ$", "country_code": "NZ", "flag": "🇳🇿", "region": "Oceania"},
+]
+
+CURRENCY_BY_CODE: Dict[str, Dict[str, Any]] = {c["code"]: c for c in SUPPORTED_CURRENCIES_CATALOG}
 
 async def get_fx_rates(currency_code: str) -> tuple[float, float]:
   """
@@ -121,35 +315,239 @@ async def calculate_and_store_spread(amount_usd: float, currency: str):
 # ==========================================
 # APP INITIALIZATION & SECURITY
 # ==========================================
-limiter = Limiter(key_func=get_remote_address)
-app = FastAPI(title="Jungle Bet API", version="2.0")
+SECURITY_HEADERS = {
+    "X-Frame-Options": "DENY",
+    "X-Content-Type-Options": "nosniff",
+    "X-XSS-Protection": "1; mode=block",
+    "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+    "Content-Security-Policy": "default-src 'self'",
+}
+
+LARGE_WITHDRAWAL_THRESHOLD_USD = 500.0
+
+# 2. RATE LIMITING (60/minute global default, 5/minute auth, 10/minute financial)
+limiter = Limiter(key_func=get_client_ip, default_limits=["60/minute"])
+app = FastAPI(
+    title="RUSH HOUR BET API",
+    version="2.0",
+    description="RUSH HOUR BET Global Traffic Betting & Smart Feed Platform API",
+)
 app.state.limiter = limiter
-app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+
+def custom_rate_limit_exceeded_handler(request: Request, exc: RateLimitExceeded) -> Response:
+    """
+    Returns HTTP 429 Too Many Requests with a Retry-After header and security headers
+    when global or endpoint-specific rate limits are exceeded.
+    """
+    retry_after = 60
+    try:
+        view_rate_limit = getattr(request.state, "view_rate_limit", None)
+        if view_rate_limit is not None:
+            window_stats = request.app.state.limiter.limiter.get_window_stats(
+                view_rate_limit[0], *view_rate_limit[1]
+            )
+            reset_in = int(max(1, (1 + window_stats[0]) - time.time()))
+            retry_after = reset_in
+    except Exception:
+        retry_after = 60
+
+    headers = {"Retry-After": str(retry_after), **SECURITY_HEADERS}
+    return JSONResponse(
+        status_code=429,
+        content={
+            "error": "Too Many Requests",
+            "detail": f"Rate limit exceeded: {exc.detail}",
+            "retry_after": retry_after,
+        },
+        headers=headers,
+    )
+
+
+app.add_exception_handler(RateLimitExceeded, custom_rate_limit_exceeded_handler)
+
+
+# 8. CUSTOM EXCEPTION HANDLERS (Never expose raw SQL errors or stack traces)
+@app.exception_handler(SQLAlchemyError)
+async def sqlalchemy_exception_handler(request: Request, exc: SQLAlchemyError) -> JSONResponse:
+    logger.error(
+        "Database error on %s %s:\n%s",
+        request.method,
+        request.url.path,
+        traceback.format_exc(),
+    )
+    return JSONResponse(
+        status_code=500,
+        content={"error": "An error occurred", "detail": "An internal error occurred."},
+        headers=SECURITY_HEADERS,
+    )
+
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+    if isinstance(exc, HTTPException):
+        return JSONResponse(
+            status_code=exc.status_code,
+            content={"detail": exc.detail},
+            headers=SECURITY_HEADERS,
+        )
+    logger.error(
+        "Unhandled exception on %s %s:\n%s",
+        request.method,
+        request.url.path,
+        traceback.format_exc(),
+    )
+    return JSONResponse(
+        status_code=500,
+        content={"error": "An error occurred", "detail": "An error occurred"},
+        headers=SECURITY_HEADERS,
+    )
+
+
+# 3. SECURITY HEADERS MIDDLEWARE (Helmet Equivalent)
+class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        response = await call_next(request)
+        for header_name, header_value in SECURITY_HEADERS.items():
+            response.headers[header_name] = header_value
+        return response
+
+
+# 4. CURRENCY CONVERSION MIDDLEWARE (Deposits: local -> USD, Withdrawals: USD -> local)
+class CurrencyConversionMiddleware(BaseHTTPMiddleware):
+    """
+    Middleware for deposit and withdrawal endpoints enforcing USD-only internal accounting:
+    - Deposits convert local currency -> USD before crediting internal balance.
+    - Withdrawals convert internal USD balance -> local currency for payout.
+    - Attaches conversion telemetry headers to responses.
+    """
+    CONVERSION_PATHS = {
+        "/deposit",
+        "/api/deposit",
+        "/withdraw",
+        "/api/withdraw",
+        "/api/withdraw-preview",
+        "/withdraw-preview",
+    }
+
+    async def dispatch(self, request: Request, call_next):
+        path = request.url.path.rstrip("/") or "/"
+        is_conversion_endpoint = request.method == "POST" and path in self.CONVERSION_PATHS
+        local_currency = request.headers.get("X-Local-Currency", "UGX").upper()
+        conversion_direction = None
+
+        if is_conversion_endpoint:
+            if "deposit" in path:
+                conversion_direction = "LOCAL_TO_USD"
+            else:
+                conversion_direction = "USD_TO_LOCAL"
+            request.state.currency_conversion = {
+                "internal_accounting_currency": INTERNAL_ACCOUNTING_CURRENCY,
+                "direction": conversion_direction,
+                "requested_local_currency": local_currency,
+            }
+
+        response = await call_next(request)
+        response.headers["X-Internal-Accounting-Currency"] = INTERNAL_ACCOUNTING_CURRENCY
+        if is_conversion_endpoint:
+            response.headers["X-Currency-Conversion-Applied"] = "true"
+            response.headers["X-Currency-Conversion-Direction"] = conversion_direction or "USD_ONLY"
+        return response
+
+
+# 6. AUDIT LOGGING MIDDLEWARE
+class AuditLoggingMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        timestamp = datetime.datetime.now(datetime.timezone.utc).isoformat()
+        client_ip = get_client_ip(request)
+        user_agent = request.headers.get("user-agent", "unknown")
+        endpoint = f"{request.method} {request.url.path}"
+        user_id = getattr(request.state, "user_id", None)
+
+        if user_id is None:
+            auth_header = request.headers.get("Authorization", "")
+            if auth_header.startswith("Bearer "):
+                token = auth_header.split(" ", 1)[1].strip()
+                try:
+                    payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+                    user_id = payload.get("user_id") or payload.get("sub")
+                except Exception:
+                    user_id = None
+
+        try:
+            response = await call_next(request)
+            status_code = response.status_code
+        except Exception as exc:
+            status_code = 500
+            audit_entry = {
+                "timestamp": timestamp,
+                "client_ip": client_ip,
+                "user_agent": user_agent,
+                "endpoint": endpoint,
+                "user_id": getattr(request.state, "user_id", user_id) or "anonymous",
+                "status_code": status_code,
+            }
+            audit_logger.info("AUDIT_LOG | %s", json.dumps(audit_entry))
+            rush_audit_logger.info("AUDIT_LOG | %s", json.dumps(audit_entry))
+            logger.error("Unhandled exception in request pipeline:\n%s", traceback.format_exc())
+            return JSONResponse(
+                status_code=500,
+                content={"error": "An error occurred", "detail": "An error occurred"},
+                headers=SECURITY_HEADERS,
+            )
+
+        resolved_user_id = getattr(request.state, "user_id", user_id) or "anonymous"
+        audit_entry = {
+            "timestamp": timestamp,
+            "client_ip": client_ip,
+            "user_agent": user_agent,
+            "endpoint": endpoint,
+            "user_id": resolved_user_id,
+            "status_code": status_code,
+        }
+        audit_logger.info("AUDIT_LOG | %s", json.dumps(audit_entry))
+        rush_audit_logger.info("AUDIT_LOG | %s", json.dumps(audit_entry))
+        return response
+
 
 from fraud_detection import FraudDetectionMiddleware, fraud_service
 
-# WIDE OPEN CORS FOR DEVELOPMENT
-app.add_middleware(
-  CORSMiddleware,
-  allow_origins=["*"],
-  allow_credentials=True,
-  allow_methods=["*"],
-  allow_headers=["*"],
+# 1. DYNAMIC CORS CONFIGURATION
+DEFAULT_ALLOWED_ORIGINS = (
+    "http://localhost:3000,"
+    "https://rush-hour-bet-frontend.up.railway.app,"
+    "https://rush-hour-bet.vercel.app,"
+    "https://rush-hour-bet-platform.vercel.app,"
+    "https://jungle-bet-frontend.up.railway.app,"
+    "https://jungle-bet.vercel.app,"
+    "https://jungle-bet-platform.vercel.app"
 )
-app.add_middleware(FraudDetectionMiddleware)
+raw_allowed_origins = (
+    os.getenv("RUSH_HOUR_BET_ALLOWED_ORIGINS")
+    or os.getenv("ALLOWED_ORIGINS", DEFAULT_ALLOWED_ORIGINS)
+)
+ALLOWED_ORIGINS = [origin.strip() for origin in raw_allowed_origins.split(",") if origin.strip()]
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+app.add_middleware(CurrencyConversionMiddleware)
+app.add_middleware(FraudDetectionMiddleware)
+app.add_middleware(SlowAPIMiddleware)
+app.add_middleware(AuditLoggingMiddleware)
+app.add_middleware(SecurityHeadersMiddleware)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=ALLOWED_ORIGINS,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 bearer_scheme = HTTPBearer()
 optional_bearer_scheme = HTTPBearer(auto_error=False)
-
-SECRET_KEY = os.getenv("JWT_SECRET_KEY") or os.getenv("NEXTAUTH_SECRET") or "your-secret-key-change-in-production"
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
 @app.get("/health")
 async def health_check():
     """Production health check for container orchestrators, Docker healthchecks, and Blue/Green routing."""
-    status_details = {"database": "unknown", "redis": "unknown"}
+    status_details = {"database": "unknown", "redis": "unknown", "smart_feed_agent": "active"}
     db_ok = False
     redis_ok = False
 
@@ -159,12 +557,14 @@ async def health_check():
             db_ok = True
             status_details["database"] = "ok"
     except Exception as e:
-        status_details["database"] = f"error: {str(e)}"
+        logger.error("Health check DB error: %s", e)
+        status_details["database"] = "error"
 
     try:
         import redis as syncredis
         redis_conn_url = (
-            os.getenv("REDIS_URL")
+            os.getenv("RUSH_HOUR_BET_REDIS_URL")
+            or os.getenv("REDIS_URL")
             or os.getenv("REDIS_PRIVATE_URL")
             or os.getenv("REDIS_PUBLIC_URL")
             or os.getenv("CELERY_BROKER_URL")
@@ -175,7 +575,8 @@ async def health_check():
             redis_ok = True
             status_details["redis"] = "ok"
     except Exception as e:
-        status_details["redis"] = f"error: {str(e)}"
+        logger.error("Health check Redis error: %s", e)
+        status_details["redis"] = "error"
 
     gpu_avail = False
     try:
@@ -187,9 +588,11 @@ async def health_check():
     overall_status = "healthy" if (db_ok and redis_ok) else "degraded"
     return {
         "status": overall_status,
-        "service": "jungle-bet-backend",
+        "platform": "RUSH HOUR BET",
+        "service": "rush-hour-bet-backend",
         "timestamp": time.time(),
         "gpu_available": gpu_avail,
+        "internal_currency": INTERNAL_ACCOUNTING_CURRENCY,
         "details": status_details
     }
 
@@ -199,13 +602,22 @@ async def health_check():
 async def init_db():
   async with engine.begin() as conn:
     await conn.run_sync(Base.metadata.create_all)
-    # Ensure new USD/FX columns and tables exist
+    # Ensure new USD/FX and global city columns exist
     await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS balance_usd DOUBLE PRECISION DEFAULT 0.0"))
     await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS preferred_currency VARCHAR(10) DEFAULT 'UGX'"))
     await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS location VARCHAR(255)"))
     await conn.execute(text("ALTER TABLE transactions ADD COLUMN IF NOT EXISTS local_currency_amount DOUBLE PRECISION"))
     await conn.execute(text("ALTER TABLE transactions ADD COLUMN IF NOT EXISTS exchange_rate_used DOUBLE PRECISION"))
     await conn.execute(text("ALTER TABLE transactions ADD COLUMN IF NOT EXISTS spread_profit_captured DOUBLE PRECISION"))
+    await conn.execute(text("ALTER TABLE camera_feeds ADD COLUMN IF NOT EXISTS city VARCHAR(100)"))
+    await conn.execute(text("ALTER TABLE camera_feeds ADD COLUMN IF NOT EXISTS flag_emoji VARCHAR(16)"))
+    await conn.execute(text("ALTER TABLE camera_feeds ADD COLUMN IF NOT EXISTS timezone VARCHAR(64) DEFAULT 'UTC'"))
+    await conn.execute(text("ALTER TABLE camera_feeds ADD COLUMN IF NOT EXISTS latitude DOUBLE PRECISION"))
+    await conn.execute(text("ALTER TABLE camera_feeds ADD COLUMN IF NOT EXISTS longitude DOUBLE PRECISION"))
+    await conn.execute(text("ALTER TABLE camera_feeds ADD COLUMN IF NOT EXISTS region VARCHAR(64)"))
+    await conn.execute(text("ALTER TABLE camera_feeds ADD COLUMN IF NOT EXISTS fallback_url VARCHAR(512)"))
+    await conn.execute(text("ALTER TABLE camera_feeds ADD COLUMN IF NOT EXISTS quality_score DOUBLE PRECISION DEFAULT 90.0"))
+    await conn.execute(text("UPDATE wallets SET currency = 'USD' WHERE currency IS NULL OR currency != 'USD'"))
     await conn.execute(text("""
       CREATE TABLE IF NOT EXISTS fx_rates (
         id SERIAL PRIMARY KEY,
@@ -215,15 +627,15 @@ async def init_db():
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       )
     """))
-    await conn.execute(text("""
-      INSERT INTO fx_rates (currency_code, market_rate, custom_rate)
-      VALUES
-        ('UGX', 4040.0, 3800.0),
-        ('TZS', 2600.0, 2400.0),
-        ('KES', 130.0, 120.0),
-        ('USD', 1.0, 1.0)
-      ON CONFLICT (currency_code) DO NOTHING
-    """))
+    for code, (m_rate, c_rate) in FX_RATE_DEFAULTS.items():
+      await conn.execute(
+        text("""
+          INSERT INTO fx_rates (currency_code, market_rate, custom_rate)
+          VALUES (:code, :market_rate, :custom_rate)
+          ON CONFLICT (currency_code) DO NOTHING
+        """),
+        {"code": code, "market_rate": m_rate, "custom_rate": c_rate},
+      )
     await conn.execute(text("""
       CREATE TABLE IF NOT EXISTS reserve_pool (
         id SERIAL PRIMARY KEY,
@@ -245,8 +657,16 @@ async def init_db():
         id=1,
         name="Caltrans I-405 Culver Overpass",
         location="Los Angeles - I-405",
+        city="Los Angeles",
         rtsp_url="https://wzmedia.dot.ca.gov/D12/SB405CulverBlvd.stream/playlist.m3u8",
         country_code="US",
+        flag_emoji="🇺🇸",
+        timezone="America/Los_Angeles",
+        latitude=34.0522,
+        longitude=-118.2437,
+        region="Americas",
+        fallback_url="/static/fallback_videos/los_angeles.mp4",
+        quality_score=95.0,
         status="active",
         lane_mask={"coordinates": [[0.10, 0.45], [0.90, 0.45], [0.95, 0.95], [0.05, 0.95]]}
       ),
@@ -254,8 +674,16 @@ async def init_db():
         id=2,
         name="TfL Chelsea Bridge Junction",
         location="London - Chelsea Bridge",
+        city="London",
         rtsp_url="https://s3-eu-west-1.amazonaws.com/jamcams.tfl.gov.uk/00001.04641.mp4",
         country_code="UK",
+        flag_emoji="🇬🇧",
+        timezone="Europe/London",
+        latitude=51.5074,
+        longitude=-0.1278,
+        region="Europe",
+        fallback_url="/static/fallback_videos/london.mp4",
+        quality_score=95.0,
         status="active",
         lane_mask={"coordinates": [[0.15, 0.40], [0.85, 0.40], [0.90, 0.95], [0.10, 0.95]]}
       ),
@@ -263,8 +691,16 @@ async def init_db():
         id=3,
         name="Rijkswaterstaat A1 Hoevelaken Overpass",
         location="Amsterdam - A10 / A1",
+        city="Amsterdam",
         rtsp_url="https://stream.inmoves.nl/rtplive/IB_55.stream/playlist.m3u8",
         country_code="NL",
+        flag_emoji="🇳🇱",
+        timezone="Europe/Amsterdam",
+        latitude=52.3676,
+        longitude=4.9041,
+        region="Europe",
+        fallback_url="/static/fallback_videos/amsterdam.mp4",
+        quality_score=94.0,
         status="active",
         lane_mask={"coordinates": [[0.05, 0.45], [0.95, 0.45], [0.98, 0.95], [0.02, 0.95]]}
       ),
@@ -272,8 +708,16 @@ async def init_db():
         id=4,
         name="Ultralytics Speedway Camera",
         location="Simulation - Ultralytics Speedway",
+        city="Tokyo",
         rtsp_url="https://github.com/ultralytics/notebooks/releases/download/v0.0.0/solutions-ci-demo.mp4",
         country_code="SIM",
+        flag_emoji="🇯🇵",
+        timezone="Asia/Tokyo",
+        latitude=35.6762,
+        longitude=139.6503,
+        region="Asia",
+        fallback_url="/static/fallback_videos/tokyo.mp4",
+        quality_score=92.0,
         status="active",
         lane_mask={"coordinates": [[0.10, 0.50], [0.90, 0.50], [0.95, 0.95], [0.05, 0.95]]}
       ),
@@ -281,8 +725,16 @@ async def init_db():
         id=5,
         name="Highway Flow Simulator",
         location="Simulation - Highway Loop",
+        city="New York",
         rtsp_url="https://raw.githubusercontent.com/intel-iot-devkit/sample-videos/master/car-detection.mp4",
         country_code="SIM",
+        flag_emoji="🇺🇸",
+        timezone="America/New_York",
+        latitude=40.7128,
+        longitude=-74.0060,
+        region="Americas",
+        fallback_url="/static/fallback_videos/new_york.mp4",
+        quality_score=92.0,
         status="active",
         lane_mask={"coordinates": [[0.15, 0.40], [0.85, 0.40], [0.90, 0.95], [0.10, 0.95]]}
       ),
@@ -293,8 +745,16 @@ async def init_db():
         existing = existing_feeds[feed.id]
         existing.name = feed.name
         existing.location = feed.location
+        existing.city = feed.city
         existing.rtsp_url = feed.rtsp_url
         existing.country_code = feed.country_code
+        existing.flag_emoji = feed.flag_emoji
+        existing.timezone = feed.timezone
+        existing.latitude = feed.latitude
+        existing.longitude = feed.longitude
+        existing.region = feed.region
+        existing.fallback_url = feed.fallback_url
+        existing.quality_score = feed.quality_score
         existing.status = feed.status
         existing.lane_mask = feed.lane_mask
       else:
@@ -307,7 +767,9 @@ async def init_db():
 
 @app.on_event("startup")
 async def startup_event():
+  validate_security_env()
   await init_db()
+  smart_feed_agent.start_background_monitor()
 
 # ==========================================
 # REAL-TIME EVENT STREAMING (SSE) - CLEAN VERSION
@@ -316,7 +778,7 @@ active_streams = []
 
 @app.get("/events/stream")
 async def stream_events(request: Request):
-  """Server-Sent Events endpoint for Jungle Bet Live Feed."""
+  """Server-Sent Events endpoint for RUSH HOUR BET Live Feed."""
   q = asyncio.Queue()
   active_streams.append(q)
 
@@ -347,20 +809,18 @@ def broadcast_event(event_type: str, payload: dict):
 # ==========================================
 # AUTH HELPERS
 # ==========================================
-def verify_password(plain_password, hashed_password):
-  return pwd_context.verify(plain_password, hashed_password)
-
-def get_password_hash(password):
-  return pwd_context.hash(password)
-
 def create_access_token(data: dict):
-  to_encode = data.copy()
+  to_encode = strip_password_fields(data.copy())
   expire = datetime.datetime.utcnow() + datetime.timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES) 
   to_encode.update({"exp": expire})
   encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
   return encoded_jwt
 
-async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme), db: AsyncSession = Depends(get_db)):
+async def get_current_user(
+  request: Request,
+  credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
+  db: AsyncSession = Depends(get_db),
+):
   token = credentials.credentials
   try:
      payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
@@ -374,49 +834,37 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(b
   user = result.scalar_one_or_none()
   if user is None:
      raise HTTPException(status_code=401, detail="User not found")
+  request.state.user_id = user.id
   return user
-
-# ==========================================
-# SCHEMAS
-# ==========================================
-class UserCreate(BaseModel):
-  username: str
-  password: str
-  preferred_currency: Optional[str] = "UGX"
-  location: Optional[str] = None
-
-class UserLogin(BaseModel):
-  username: str
-  password: str
-
-class DepositRequest(BaseModel):
-  amount_local: float
-  currency: str = "UGX"
-  user_id: Optional[int] = None
-
-class WithdrawRequest(BaseModel):
-  amount_usd: Optional[float] = None
-  amount: Optional[float] = None
-  currency: Optional[str] = None
-  user_id: Optional[int] = None
-
-class BetPlace(BaseModel):
-  bet_type: str
-  criteria: dict
-  amount: float
-  feed_id: Optional[int] = None
 
 async def resolve_request_user(
   user_id: Optional[int],
   credentials: Optional[HTTPAuthorizationCredentials],
   db: AsyncSession,
+  request: Optional[Request] = None,
 ) -> models.User:
   if credentials and credentials.credentials:
-    return await get_current_user(credentials=credentials, db=db)
+    token = credentials.credentials
+    try:
+      payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+      username: str = payload.get("sub")
+      if not username:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    except JWTError:
+      raise HTTPException(status_code=401, detail="Invalid token")
+    result = await db.execute(select(models.User).where(models.User.username == username))
+    user = result.scalar_one_or_none()
+    if not user:
+      raise HTTPException(status_code=401, detail="User not found")
+    if request is not None:
+      request.state.user_id = user.id
+    return user
   if user_id is not None:
     res = await db.execute(select(models.User).where(models.User.id == user_id))
     user = res.scalar_one_or_none()
     if user:
+      if request is not None:
+        request.state.user_id = user.id
       return user
     raise HTTPException(status_code=404, detail="User not found")
   raise HTTPException(status_code=401, detail="Not authenticated")
@@ -424,6 +872,22 @@ async def resolve_request_user(
 # ==========================================
 # ROUTES
 # ==========================================
+def serialize_user_profile(user: models.User) -> dict:
+  """Serialize user profile while strictly ensuring password/hashed_password are NEVER included."""
+  is_admin = user.id == 1 or user.username.lower() in ("admin", "jungleadmin")
+  return strip_password_fields({
+     "id": user.id,
+     "username": user.username,
+     "balance_usd": user.balance_usd or 0.0,
+     "v_coins": user.balance_usd or 0.0,
+     "preferred_currency": user.preferred_currency or "UGX",
+     "location": user.location,
+     "role": "admin" if is_admin else "user",
+     "is_flagged": getattr(user, "is_flagged", False),
+     "flag_reason": getattr(user, "flag_reason", None),
+     "is_banned": getattr(user, "is_banned", False),
+  })
+
 @app.post("/register", response_model=dict)
 @limiter.limit("5/minute")
 async def register(user_data: UserCreate, request: Request, db: AsyncSession = Depends(get_db)):
@@ -441,55 +905,240 @@ async def register(user_data: UserCreate, request: Request, db: AsyncSession = D
   db.add(new_user)
   await db.commit()
   await db.refresh(new_user)
-  return {
+  request.state.user_id = new_user.id
+  access_token = create_access_token(data={"sub": new_user.username, "user_id": new_user.id})
+  return strip_password_fields({
      "message": "User registered successfully",
      "balance_usd": new_user.balance_usd,
      "v_coins": new_user.balance_usd,
      "preferred_currency": new_user.preferred_currency,
-  }
+     "access_token": access_token,
+     "refresh_token": access_token,
+     "token_type": "bearer",
+     "user": serialize_user_profile(new_user),
+  })
 
 @app.post("/login", response_model=dict)
-@limiter.limit("10/minute")
+@limiter.limit("5/minute")
 async def login(user_data: UserLogin, request: Request, db: AsyncSession = Depends(get_db)):
   result = await db.execute(select(models.User).where(models.User.username == user_data.username))
   user = result.scalar_one_or_none()
 
   if not user or not verify_password(user_data.password, user.hashed_password):
+     log_critical_event(
+         event_type="FAILED_LOGIN",
+         message=f"Failed login attempt for username '{user_data.username}'",
+         request=request,
+         user_id=user.id if user else None,
+         details={"username": user_data.username, "reason": "invalid_credentials"},
+     )
      raise HTTPException(status_code=401, detail="Invalid credentials")
 
-  access_token = create_access_token(data={"sub": user.username})
-  return {"access_token": access_token, "token_type": "bearer"}
+  request.state.user_id = user.id
+  access_token = create_access_token(data={"sub": user.username, "user_id": user.id})
+  return strip_password_fields({
+     "access_token": access_token,
+     "refresh_token": access_token,
+     "token_type": "bearer",
+     "user": serialize_user_profile(user),
+  })
+
+@app.post("/auth/refresh", response_model=dict)
+@app.post("/refresh", response_model=dict)
+async def refresh_access_token(
+  payload: Optional[TokenRefreshRequest] = None,
+  credentials: Optional[HTTPAuthorizationCredentials] = Depends(optional_bearer_scheme),
+  db: AsyncSession = Depends(get_db),
+):
+  raw_token = None
+  if payload and payload.refresh_token:
+    raw_token = payload.refresh_token
+  elif credentials and credentials.credentials:
+    raw_token = credentials.credentials
+
+  if not raw_token:
+    raise HTTPException(status_code=401, detail="Missing refresh token")
+
+  try:
+    decoded = jwt.decode(raw_token, SECRET_KEY, algorithms=[ALGORITHM], options={"verify_exp": False})
+    username: str = decoded.get("sub")
+    if not username:
+      raise HTTPException(status_code=401, detail="Invalid token payload")
+  except JWTError:
+    raise HTTPException(status_code=401, detail="Invalid refresh token")
+
+  result = await db.execute(select(models.User).where(models.User.username == username))
+  user = result.scalar_one_or_none()
+  if not user:
+    raise HTTPException(status_code=401, detail="User not found")
+
+  new_token = create_access_token(data={"sub": user.username, "user_id": user.id})
+  return strip_password_fields({
+    "access_token": new_token,
+    "refresh_token": new_token,
+    "token_type": "bearer",
+    "user": serialize_user_profile(user),
+  })
 
 @app.get("/me/balance", response_model=dict)
+@app.get("/me", response_model=dict)
 async def get_balance(current_user: models.User = Depends(get_current_user)):
-  return {
+  profile = serialize_user_profile(current_user)
+  return strip_password_fields({
+     **profile,
      "username": current_user.username,
      "balance_usd": current_user.balance_usd,
      "v_coins": current_user.balance_usd,
      "preferred_currency": current_user.preferred_currency,
+  })
+
+@app.get("/transactions", response_model=list)
+@app.get("/me/transactions", response_model=list)
+async def get_user_transactions(current_user: models.User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+  res = await db.execute(
+    select(models.Transaction)
+    .where(models.Transaction.user_id == current_user.id)
+    .order_by(desc(models.Transaction.created_at))
+    .limit(50)
+  )
+  txns = res.scalars().all()
+  out = []
+  for t in txns:
+    desc_text = t.description or ""
+    txn_currency = current_user.preferred_currency or "UGX"
+    for code in ("UGX", "KES", "TZS", "USD", "EUR", "GBP", "NGN"):
+      if f" {code}" in desc_text:
+        txn_currency = code
+        break
+    out.append({
+      "id": t.id,
+      "type": t.type,
+      "amount": t.amount,
+      "amount_usd": t.amount,
+      "local_amount": t.local_currency_amount,
+      "currency": txn_currency,
+      "exchange_rate": t.exchange_rate_used,
+      "spread_profit": t.spread_profit_captured,
+      "status": t.status,
+      "description": t.description,
+      "created_at": t.created_at.isoformat() if t.created_at else None,
+    })
+  return out
+
+@app.get("/api/currencies", response_model=dict)
+@app.get("/currencies", response_model=dict)
+async def get_supported_currencies():
+  """
+  Returns all supported local currencies with live/configured FX rates.
+  Internal accounting currency is strictly USD.
+  """
+  currencies_list = []
+  for item in SUPPORTED_CURRENCIES_CATALOG:
+    code = item["code"]
+    market_rate, custom_rate = await get_fx_rates(code)
+    min_deposit_local = round(MIN_DEPOSIT_USD_EQUIVALENT * (market_rate * (market_rate / max(custom_rate, 0.0001))), 2)
+    currencies_list.append({
+      **item,
+      "market_rate": market_rate,
+      "custom_rate": custom_rate,
+      "deposit_rate": custom_rate,
+      "withdraw_rate": custom_rate,
+      "min_deposit_usd": MIN_DEPOSIT_USD_EQUIVALENT,
+      "min_deposit_local": min_deposit_local,
+      "min_withdrawal_usd": MIN_WITHDRAWAL_USD,
+      "internal_accounting_currency": INTERNAL_ACCOUNTING_CURRENCY,
+    })
+  return {
+    "internal_accounting_currency": INTERNAL_ACCOUNTING_CURRENCY,
+    "default_local_currency": "UGX",
+    "min_deposit_usd": MIN_DEPOSIT_USD_EQUIVALENT,
+    "min_withdrawal_usd": MIN_WITHDRAWAL_USD,
+    "count": len(currencies_list),
+    "currencies": currencies_list,
   }
+
+
+@app.post("/api/withdraw-preview", response_model=dict)
+@app.post("/withdraw-preview", response_model=dict)
+async def preview_withdrawal(
+  request: Request,
+  preview_data: WithdrawPreviewRequest,
+  credentials: Optional[HTTPAuthorizationCredentials] = Depends(optional_bearer_scheme),
+  db: AsyncSession = Depends(get_db),
+):
+  """
+  Calculates local currency payout for a given USD withdrawal amount without deducting balance.
+  """
+  from transaction_service import transaction_service
+
+  amount_usd = preview_data.amount_usd if preview_data.amount_usd is not None else preview_data.amount
+  if amount_usd is None or float(amount_usd) <= 0:
+    raise HTTPException(status_code=400, detail="Withdrawal preview amount_usd must be greater than 0")
+
+  amount_usd = float(amount_usd)
+  currency = (preview_data.currency or "UGX").strip().upper()
+  currency_meta = CURRENCY_BY_CODE.get(currency, {"code": currency, "name": currency, "symbol": currency, "flag": "🌐"})
+
+  market_rate, custom_rate = await get_fx_rates(currency)
+  conversion = transaction_service.convert_usd_to_local(
+    amount_usd=amount_usd,
+    market_rate=market_rate,
+    custom_rate=custom_rate,
+  )
+
+  current_balance_usd = None
+  has_sufficient_balance = True
+  if preview_data.user_id is not None or (credentials and credentials.credentials):
+    try:
+      user = await resolve_request_user(preview_data.user_id, credentials, db, request=request)
+      current_balance_usd = float(user.balance_usd or 0.0)
+      has_sufficient_balance = current_balance_usd >= amount_usd
+    except Exception:
+      pass
+
+  return {
+    "status": "preview",
+    "internal_currency": INTERNAL_ACCOUNTING_CURRENCY,
+    "amount_usd": round(amount_usd, 6),
+    "currency": currency,
+    "currency_name": currency_meta.get("name", currency),
+    "symbol": currency_meta.get("symbol", currency),
+    "flag": currency_meta.get("flag", "🌐"),
+    "market_rate": market_rate,
+    "custom_rate": custom_rate,
+    "exchange_rate_used": custom_rate,
+    "local_payout": conversion["local_payout"],
+    "payout_local": conversion["local_payout"],
+    "local_currency_amount": conversion["local_payout"],
+    "market_local_equivalent": conversion["market_local_equivalent"],
+    "spread_diff": round(market_rate - custom_rate, 6),
+    "spread_profit_usd": conversion["spread_profit_usd"],
+    "spread_profit_local": conversion["spread_profit_local"],
+    "min_withdrawal_usd": MIN_WITHDRAWAL_USD,
+    "meets_minimum": amount_usd >= MIN_WITHDRAWAL_USD,
+    "current_balance_usd": current_balance_usd,
+    "has_sufficient_balance": has_sufficient_balance,
+    "is_eligible": (amount_usd >= MIN_WITHDRAWAL_USD) and has_sufficient_balance,
+  }
+
 
 @app.post("/deposit", response_model=dict)
 @app.post("/api/deposit", response_model=dict)
+@limiter.limit("10/minute")
 async def deposit_funds(
+  request: Request,
   deposit_data: DepositRequest,
   credentials: Optional[HTTPAuthorizationCredentials] = Depends(optional_bearer_scheme),
   db: AsyncSession = Depends(get_db),
 ):
   """
   Deposit Route (/deposit):
+  Converts local currency -> USD and stores balance strictly in USD.
   Captures FX spread IMMEDIATELY on deposit conversion using the Value Reduction method.
-  - Input: amount_local, currency
-  - Fetch market_rate and custom_rate from fx_rates
-  - spread_diff = market_rate - custom_rate
-  - Step A: real_usd = amount_local / market_rate
-  - Step B: profit_to_keep = real_usd * (spread_diff / market_rate)
-  - Step C: user_credit_usd = real_usd - profit_to_keep == (amount_local / market_rate) * (custom_rate / market_rate)
-  - Validate: user_credit_usd >= MIN_DEPOSIT_USD_EQUIVALENT (2.0)
-  - Update User Balance: balance_usd += user_credit_usd
-  - Record Transaction: type='deposit', local_in=amount_local, usd_credited=user_credit_usd, spread_profit_kept=(real_usd - user_credit_usd)
   """
-  current_user = await resolve_request_user(deposit_data.user_id, credentials, db)
+  from transaction_service import transaction_service
+
+  current_user = await resolve_request_user(deposit_data.user_id, credentials, db, request=request)
 
   amount_local = float(deposit_data.amount_local)
   currency = (deposit_data.currency or current_user.preferred_currency or "UGX").upper()
@@ -501,9 +1150,14 @@ async def deposit_funds(
   market_rate, custom_rate = await get_fx_rates(currency)
 
   # Calculate spread_diff, real_usd, and user_credit_usd (Value Reduction method)
+  conversion = transaction_service.convert_local_to_usd(
+    amount_local=amount_local,
+    market_rate=market_rate,
+    custom_rate=custom_rate,
+  )
   spread_diff = market_rate - custom_rate
-  real_usd = amount_local / market_rate
-  profit_to_keep = real_usd * (spread_diff / market_rate)
+  real_usd = conversion["real_usd"]
+  profit_to_keep = real_usd * (spread_diff / market_rate) if market_rate > 0 else 0.0
   user_credit_usd = (amount_local / market_rate) * (custom_rate / market_rate)
   spread_profit_kept = real_usd - user_credit_usd
 
@@ -514,14 +1168,19 @@ async def deposit_funds(
       detail=f"Minimum deposit is ${MIN_DEPOSIT_USD_EQUIVALENT:.2f} USD equivalent (credited: ${user_credit_usd:.2f} USD)."
     )
 
-  # Update User Balance
+  # Update User Balance (stored strictly in USD) and sync USD PLAYER wallet
   current_user.balance_usd = (current_user.balance_usd or 0.0) + user_credit_usd
   current_user.preferred_currency = currency
+
+  player_wallet = await transaction_service.get_or_create_player_wallet(db, current_user.id, currency="USD")
+  await transaction_service._authorize_session(db)
+  player_wallet.balance = current_user.balance_usd
 
   # Record Transaction
   new_txn = models.Transaction(
     user_id=current_user.id,
     type="deposit",
+    dest_wallet_id=player_wallet.id,
     local_in=amount_local,
     usd_credited=user_credit_usd,
     spread_profit_kept=spread_profit_kept,
@@ -544,6 +1203,7 @@ async def deposit_funds(
     "message": "Deposit successful",
     "status": "completed",
     "type": "deposit",
+    "internal_currency": INTERNAL_ACCOUNTING_CURRENCY,
     "currency": currency,
     "local_in": amount_local,
     "amount_local": amount_local,
@@ -560,24 +1220,23 @@ async def deposit_funds(
   }
 
 @app.post("/withdraw", response_model=dict)
+@limiter.limit("10/minute")
 async def withdraw_funds(
+  request: Request,
   withdraw_data: WithdrawRequest,
   credentials: Optional[HTTPAuthorizationCredentials] = Depends(optional_bearer_scheme),
   db: AsyncSession = Depends(get_db),
 ):
   """
   Withdrawal Route (/withdraw):
-  User gives USD, gets Local currency calculated via custom_rate (lower payout).
-  Ensures double-sided spread profit.
-  - Validate: amount_usd >= MIN_WITHDRAWAL_USD (5.0)
-  - Validate: current_user.balance_usd >= amount_usd
-  - Calculate local payout = amount_usd * custom_rate
-  - Deduct balance_usd and record Transaction
+  User gives USD from their USD-only balance, gets Local currency calculated via custom_rate (lower payout).
   """
-  current_user = await resolve_request_user(withdraw_data.user_id, credentials, db)
+  from transaction_service import transaction_service
+
+  current_user = await resolve_request_user(withdraw_data.user_id, credentials, db, request=request)
 
   amount_usd = withdraw_data.amount_usd if withdraw_data.amount_usd is not None else withdraw_data.amount
-  if amount_usd is None or amount_usd <= 0:
+  if amount_usd is None or float(amount_usd) <= 0:
     raise HTTPException(status_code=400, detail="Withdrawal amount must be greater than 0")
 
   amount_usd = float(amount_usd)
@@ -599,13 +1258,17 @@ async def withdraw_funds(
   spread_profit_usd = amount_usd * (spread_diff / market_rate) if market_rate > 0 else 0.0
   spread_profit_local = spread_diff * amount_usd
 
-  # Update User Balance
+  # Update User Balance (stored strictly in USD) and sync USD PLAYER wallet
   current_user.balance_usd = (current_user.balance_usd or 0.0) - amount_usd
+  player_wallet = await transaction_service.get_or_create_player_wallet(db, current_user.id, currency="USD")
+  await transaction_service._authorize_session(db)
+  player_wallet.balance = current_user.balance_usd
 
   # Record Transaction
   new_txn = models.Transaction(
     user_id=current_user.id,
     type="withdrawal",
+    source_wallet_id=player_wallet.id,
     amount=amount_usd,
     local_currency_amount=local_payout,
     exchange_rate_used=custom_rate,
@@ -620,12 +1283,27 @@ async def withdraw_funds(
   await db.refresh(current_user)
   await db.refresh(new_txn)
 
+  if amount_usd >= LARGE_WITHDRAWAL_THRESHOLD_USD:
+    log_critical_event(
+      event_type="LARGE_WITHDRAWAL",
+      message=f"Large withdrawal of ${amount_usd:,.2f} USD by user '{current_user.username}' (id={current_user.id})",
+      request=request,
+      user_id=current_user.id,
+      details={
+        "amount_usd": amount_usd,
+        "local_payout": round(local_payout, 2),
+        "currency": currency,
+        "transaction_id": new_txn.id,
+      },
+    )
+
   await calculate_and_store_spread(amount_usd, currency)
 
   return {
     "message": "Withdrawal successful",
     "status": "completed",
     "type": "withdrawal",
+    "internal_currency": INTERNAL_ACCOUNTING_CURRENCY,
     "amount_usd": amount_usd,
     "currency": currency,
     "market_rate": market_rate,
@@ -642,7 +1320,7 @@ async def withdraw_funds(
 @limiter.limit("20/minute")
 async def place_bet(bet_data: BetPlace, request: Request, current_user: models.User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
   if getattr(current_user, "is_banned", False):
-     raise HTTPException(status_code=403, detail="This account has been banned by Jungle Bet Security & Fraud Prevention.")
+     raise HTTPException(status_code=403, detail="This account has been banned by RUSH HOUR BET Security & Fraud Prevention.")
 
   if (current_user.balance_usd or 0.0) < bet_data.amount:
      raise HTTPException(status_code=400, detail="Insufficient balance")
@@ -712,7 +1390,7 @@ async def place_bet(bet_data: BetPlace, request: Request, current_user: models.U
   }
 
 # ==========================================
-# CAMERA FEEDS & STREAM PROXY
+# CAMERA FEEDS, GLOBAL CITIES & SMART FEED MANAGER
 # ==========================================
 @app.get("/camera-feeds", response_model=list)
 async def list_camera_feeds(db: AsyncSession = Depends(get_db)):
@@ -724,8 +1402,16 @@ async def list_camera_feeds(db: AsyncSession = Depends(get_db)):
       "id": f.id,
       "name": f.name,
       "location": f.location,
+      "city": getattr(f, "city", None) or (f.location.split(" - ")[0] if f.location else None),
       "rtsp_url": f.rtsp_url,
       "country_code": f.country_code,
+      "flag_emoji": getattr(f, "flag_emoji", "🌐") or "🌐",
+      "timezone": getattr(f, "timezone", "UTC") or "UTC",
+      "latitude": getattr(f, "latitude", None),
+      "longitude": getattr(f, "longitude", None),
+      "region": getattr(f, "region", None),
+      "fallback_url": getattr(f, "fallback_url", None),
+      "quality_score": getattr(f, "quality_score", 90.0),
       "status": f.status,
       "lane_mask": f.lane_mask,
       "created_at": f.created_at.isoformat() if f.created_at else None,
@@ -745,13 +1431,188 @@ async def get_camera_feed(feed_id: int, db: AsyncSession = Depends(get_db)):
     "id": feed.id,
     "name": feed.name,
     "location": feed.location,
+    "city": getattr(feed, "city", None) or (feed.location.split(" - ")[0] if feed.location else None),
     "rtsp_url": feed.rtsp_url,
     "country_code": feed.country_code,
+    "flag_emoji": getattr(feed, "flag_emoji", "🌐") or "🌐",
+    "timezone": getattr(feed, "timezone", "UTC") or "UTC",
+    "latitude": getattr(feed, "latitude", None),
+    "longitude": getattr(feed, "longitude", None),
+    "region": getattr(feed, "region", None),
+    "fallback_url": getattr(feed, "fallback_url", None),
+    "quality_score": getattr(feed, "quality_score", 90.0),
     "status": feed.status,
     "lane_mask": feed.lane_mask,
     "created_at": feed.created_at.isoformat() if feed.created_at else None,
     "updated_at": feed.updated_at.isoformat() if feed.updated_at else None,
   }
+
+@app.get("/api/cities", response_model=dict)
+@app.get("/cities", response_model=dict)
+async def get_global_cities(region: Optional[str] = None):
+  """
+  Returns all global cities with coordinates (lat/long), IANA timezone, country_code,
+  flag_emoji, region, and optimal fallback video URL.
+  """
+  cities = []
+  for slug, cfg in smart_feed_agent.cities_config.items():
+    if region and cfg.get("region", "").lower() != region.strip().lower():
+      continue
+    optimal = smart_feed_agent.get_optimal_feed(slug, use_load_balancing=False)
+    coords = cfg.get("coordinates", {}) if isinstance(cfg.get("coordinates"), dict) else {}
+    lat = cfg.get("lat") if cfg.get("lat") is not None else coords.get("lat")
+    lng = cfg.get("long") if cfg.get("long") is not None else coords.get("long")
+    city_name = cfg.get("city") or cfg.get("name") or optimal.get("city") or slug.replace("_", " ").title()
+    cities.append({
+      "key": slug,
+      "city": city_name,
+      "name": city_name,
+      "region": cfg.get("region"),
+      "country": cfg.get("country"),
+      "country_code": cfg.get("country_code"),
+      "flag_emoji": cfg.get("flag_emoji"),
+      "timezone": cfg.get("timezone"),
+      "lat": lat,
+      "long": lng,
+      "coordinates": {"lat": lat, "long": lng},
+      "lng_lat": [lng, lat],
+      "fallback_video": cfg.get("fallback_video"),
+      "optimal_video_url": optimal.get("optimal_video_url"),
+      "quality_score": optimal.get("quality_score"),
+      "health_status": optimal.get("health_status"),
+    })
+  return {
+    "platform": "RUSH HOUR BET",
+    "count": len(cities),
+    "regions": ["Asia", "Africa", "Americas", "Europe", "Oceania"],
+    "cities": cities,
+  }
+
+
+@app.get("/api/feed-manager", response_model=dict)
+async def api_feed_manager(
+  city: Optional[str] = None,
+  region: Optional[str] = None,
+  load_balance: bool = True,
+):
+  """
+  Smart Feed Manager Endpoint (/api/feed-manager):
+  Returns the optimal video URL, quality score, fallback status, and health telemetry
+  for each global city (or for a specific requested city/region).
+  """
+  if city:
+    return smart_feed_agent.get_optimal_feed(city, use_load_balancing=load_balance)
+  all_data = smart_feed_agent.get_all_optimal_feeds(use_load_balancing=load_balance)
+  if region:
+    reg_norm = region.strip().lower()
+    filtered_cities = {
+      k: v for k, v in all_data["cities"].items()
+      if str(v.get("region", "")).lower() == reg_norm
+    }
+    filtered_list = [
+      v for v in all_data["feeds"]
+      if str(v.get("region", "")).lower() == reg_norm
+    ]
+    all_data["cities"] = filtered_cities
+    all_data["feeds"] = filtered_list
+    all_data["region_filter"] = region
+  return all_data
+
+
+@app.get("/api/feed-manager/{city_name}", response_model=dict)
+async def api_feed_manager_city(city_name: str, load_balance: bool = True):
+  """Returns the optimal video URL and telemetry for a specific city."""
+  return smart_feed_agent.get_optimal_feed(city_name, use_load_balancing=load_balance)
+
+
+@app.post("/api/feed-manager/override", response_model=dict)
+@app.post("/api/admin/feed-override", response_model=dict)
+async def api_set_feed_override(payload: FeedOverrideRequest):
+  """
+  Admin dashboard control to manually override the feed source for a city.
+  """
+  try:
+    result = smart_feed_agent.set_admin_override(
+      city=payload.city,
+      video_url=payload.video_url,
+      source_id=payload.source_id,
+      reason=payload.reason or "Manual admin override",
+      admin_user=payload.admin_user or "admin",
+    )
+    optimal = smart_feed_agent.get_optimal_feed(payload.city, use_load_balancing=False)
+    return {
+      "success": True,
+      "message": f"Feed override activated for {optimal.get('city')}",
+      "override": result,
+      "feed": optimal,
+    }
+  except ValueError as ve:
+    raise HTTPException(status_code=400, detail=str(ve))
+
+
+@app.delete("/api/feed-manager/override/{city_name}", response_model=dict)
+@app.delete("/api/admin/feed-override/{city_name}", response_model=dict)
+async def api_clear_feed_override(city_name: str):
+  """Clear manual admin feed override for a city and return to automated Smart Feed Agent routing."""
+  res = smart_feed_agent.clear_admin_override(city_name)
+  optimal = smart_feed_agent.get_optimal_feed(city_name, use_load_balancing=False)
+  return {
+    "success": True,
+    "result": res,
+    "feed": optimal,
+  }
+
+
+@app.post("/api/feed-manager/failover", response_model=dict)
+async def api_emergency_feed_failover(payload: FeedFailoverRequest, db: AsyncSession = Depends(get_db)):
+  """
+  Emergency feed switching endpoint:
+  Activates within < 2 seconds of feed failure, switches to next healthy source or fallback loop,
+  and dispatches Telegram + email failure alerts.
+  """
+  switch_result = await smart_feed_agent.emergency_switch_feed(
+    city=payload.city,
+    failed_source_id=payload.failed_source_id,
+    reason=payload.reason or "Stream connection timeout",
+    session=db,
+  )
+  await db.commit()
+  return switch_result
+
+
+@app.post("/api/feed-manager/scan", response_model=dict)
+async def api_trigger_feed_scan(db: AsyncSession = Depends(get_db)):
+  """Triggers an immediate health check & feed discovery scan across all global cities."""
+  scan_result = await smart_feed_agent.check_all_feeds_health(session=db)
+  await db.commit()
+  return scan_result
+
+
+@app.api_route("/static/fallback_videos/{video_name}", methods=["GET", "HEAD"])
+async def serve_fallback_video(video_name: str):
+  """Serve pre-downloaded high-quality fallback traffic loop videos."""
+  safe_name = os.path.basename(video_name)
+  if not safe_name.endswith(".mp4"):
+    safe_name = f"{safe_name}.mp4"
+  base_dir = os.path.dirname(os.path.abspath(__file__))
+  fallback_dir = os.path.join(base_dir, "static", "fallback_videos")
+  video_path = os.path.join(fallback_dir, safe_name)
+  if not os.path.exists(video_path):
+    video_path = os.path.join(fallback_dir, "default.mp4")
+  if not os.path.exists(video_path):
+    video_path = os.path.join(base_dir, "static", "videos", "sample_traffic.mp4")
+  if not os.path.exists(video_path):
+    raise HTTPException(status_code=404, detail="Fallback video not found")
+  return FileResponse(
+    video_path,
+    media_type="video/mp4",
+    headers={
+      "Accept-Ranges": "bytes",
+      "Cache-Control": "public, max-age=300",
+      "X-Feed-Fallback": "true",
+      "X-Platform": "RUSH HOUR BET",
+    },
+  )
 
 @app.api_route("/camera-feeds/{feed_id}/stream", methods=["GET", "HEAD"])
 @app.api_route("/camera-feeds/{feed_id}/proxy", methods=["GET", "HEAD"])
@@ -1275,14 +2136,6 @@ async def websocket_count(websocket: WebSocket, feed_id: int):
 # ==========================================
 # FRAUD DETECTOR API & SSE STREAMING
 # ==========================================
-class FraudCheckRequest(BaseModel):
-    action: str  # "bet" or "win"
-    amount: float = 10.0
-    userId: Optional[str] = None
-    username: Optional[str] = None
-    betId: Optional[int] = None
-
-
 @app.post("/fraud-detector-api/check")
 @app.post("/api/fraud/check")
 @app.post("/fraud/check")
@@ -1295,7 +2148,7 @@ async def check_fraud_endpoint(req: FraudCheckRequest, db: AsyncSession = Depend
     if req.action == "win":
         res = await fraud_service.record_win(
             user_id=user_id,
-            win_amount=req.amount,
+            win_amount=float(req.amount),
             bet_id=req.betId,
             username=req.username,
             session=db
@@ -1304,7 +2157,7 @@ async def check_fraud_endpoint(req: FraudCheckRequest, db: AsyncSession = Depend
             "success": True,
             "action": "win",
             "userId": user_id,
-            "winAmount": req.amount,
+            "winAmount": float(req.amount),
             "isSuspicious": res["is_suspicious"],
             "reason": res["reason"],
             "flagged": res["flagged"],
@@ -1312,7 +2165,7 @@ async def check_fraud_endpoint(req: FraudCheckRequest, db: AsyncSession = Depend
     elif req.action == "bet":
         res = await fraud_service.record_bet(
             user_id=user_id,
-            amount=req.amount,
+            amount=float(req.amount),
             bet_id=req.betId,
             username=req.username,
             session=db
@@ -1464,7 +2317,7 @@ async def admin_get_users(db: AsyncSession = Depends(get_db)):
     res = await db.execute(select(models.User).order_by(models.User.id))
     users = res.scalars().all()
     user_list = [
-        {
+        strip_password_fields({
             "id": str(u.id),
             "name": u.username,
             "username": u.username,
@@ -1478,7 +2331,7 @@ async def admin_get_users(db: AsyncSession = Depends(get_db)):
             "role": "admin" if u.id == 1 else "user",
             "createdAt": "2026-10-01T00:00:00Z",
             "updatedAt": "2026-10-08T12:00:00Z",
-        }
+        })
         for u in users
     ]
     flagged = [u for u in user_list if u["isFlagged"]]
@@ -1492,13 +2345,12 @@ async def admin_get_users(db: AsyncSession = Depends(get_db)):
     }
 
 
-class AdminBanPayload(BaseModel):
-    userId: str
-    action: str  # "ban" | "unban" | "unflag"
-
-
 @app.post("/api/admin/ban")
-async def admin_ban_user_action(payload: AdminBanPayload, db: AsyncSession = Depends(get_db)):
+async def admin_ban_user_action(
+    payload: AdminBanPayload,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+):
     """Ban, unban, or clear flag for a specified user."""
     try:
         user_id_int = int(payload.userId)
@@ -1512,10 +2364,22 @@ async def admin_ban_user_action(payload: AdminBanPayload, db: AsyncSession = Dep
 
     if payload.action == "ban":
         user.is_banned = True
-        logger.warning("[ADMIN] User %s has been banned.", user.username)
+        log_critical_event(
+            event_type="USER_BAN_ACTION",
+            message=f"Admin banned user '{user.username}' (id={user.id})",
+            request=request,
+            user_id=user.id,
+            details={"target_user_id": user.id, "target_username": user.username, "action": "ban"},
+        )
     elif payload.action == "unban":
         user.is_banned = False
-        logger.info("[ADMIN] User %s unbanned.", user.username)
+        log_critical_event(
+            event_type="USER_UNBAN_ACTION",
+            message=f"Admin unbanned user '{user.username}' (id={user.id})",
+            request=request,
+            user_id=user.id,
+            details={"target_user_id": user.id, "target_username": user.username, "action": "unban"},
+        )
     elif payload.action == "unflag":
         user.is_flagged = False
         user.flag_reason = None
@@ -1817,21 +2681,6 @@ async def user_balance_endpoint(userId: str = "test_user_01", db: AsyncSession =
 # ==========================================
 # FINANCIAL CORE & MOBILE MONITORING APIS
 # ==========================================
-class ProcessBetPayload(BaseModel):
-    userId: int
-    stake: float
-    odds: float = 1.0
-    outcome: Optional[str] = None  # "lock", "loss", "win", "void", "validate"
-    betId: Optional[int] = None
-    username: Optional[str] = None
-    durationSeconds: Optional[float] = None
-    predictedCount: Optional[int] = None
-    actualCount: Optional[int] = None
-    crossings: Optional[List[Any]] = None
-    countsPerSecond: Optional[List[Dict[str, Any]]] = None
-    operator: str = "exact"
-
-
 @app.post("/api/finance/bet/process")
 async def api_process_bet(payload: ProcessBetPayload, db: AsyncSession = Depends(get_db)):
     """Backend service processBet endpoint with time-window validation."""
@@ -1840,8 +2689,8 @@ async def api_process_bet(payload: ProcessBetPayload, db: AsyncSession = Depends
         res = await transaction_service.processBet(
             session=db,
             user_id=payload.userId,
-            stake=payload.stake,
-            odds=payload.odds,
+            stake=float(payload.stake),
+            odds=float(payload.odds),
             outcome=payload.outcome,
             bet_id=payload.betId,
             username=payload.username,
@@ -1854,14 +2703,13 @@ async def api_process_bet(payload: ProcessBetPayload, db: AsyncSession = Depends
         )
         await db.commit()
         return res
-    except Exception as e:
+    except ValueError as ve:
         await db.rollback()
-        raise HTTPException(status_code=400, detail=str(e))
-
-
-class DailySettlementPayload(BaseModel):
-    date: Optional[str] = None
-    operatorBankAccount: Optional[str] = None
+        raise HTTPException(status_code=400, detail=str(ve))
+    except Exception:
+        await db.rollback()
+        logger.error("Error in api_process_bet:\n%s", traceback.format_exc())
+        raise HTTPException(status_code=400, detail="An error occurred processing the bet.")
 
 
 @app.post("/api/finance/settlement/daily")
@@ -1885,9 +2733,10 @@ async def api_daily_settlement(payload: Optional[DailySettlementPayload] = None,
         )
         await db.commit()
         return report
-    except Exception as e:
+    except Exception:
         await db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error("Error in api_daily_settlement:\n%s", traceback.format_exc())
+        raise HTTPException(status_code=500, detail="An error occurred")
 
 
 @app.get("/api/finance/settlements")
@@ -1932,12 +2781,6 @@ async def api_get_alerts():
     }
 
 
-class TestAlertPayload(BaseModel):
-    alertType: str = "HIGH_WIN"  # "HIGH_WIN", "PROFIT_TARGET", "FRAUD_ALERT", "DAILY_SUMMARY"
-    username: Optional[str] = "VIP_Speedster"
-    amount: Optional[float] = 1250.0
-
-
 @app.post("/api/finance/alerts/test")
 async def api_test_alert(payload: TestAlertPayload, db: AsyncSession = Depends(get_db)):
     """Test dispatch of real-time alerts."""
@@ -1946,14 +2789,14 @@ async def api_test_alert(payload: TestAlertPayload, db: AsyncSession = Depends(g
         res = await notification_service.alert_high_win(
             username=payload.username or "VIP_Speedster",
             user_id=1,
-            win_amount=payload.amount or 1500.0,
+            win_amount=float(payload.amount or 1500.0),
             bet_id=999,
             odds=3.0,
             session=db,
         )
     elif payload.alertType == "PROFIT_TARGET":
         res = await notification_service.check_and_alert_profit_target(
-            daily_profit=payload.amount or 5500.0,
+            daily_profit=float(payload.amount or 5500.0),
             active_players=24,
             house_bankroll=105500.0,
             target=5000.0,
@@ -1988,21 +2831,6 @@ async def api_test_alert(payload: TestAlertPayload, db: AsyncSession = Depends(g
     return {"success": True, "alert": res}
 
 
-class TreasurySweepPayload(BaseModel):
-    amount: Optional[float] = None
-    operatorBankAccount: Optional[str] = None
-    isManual: bool = True
-    twoFactorCode: Optional[str] = None
-
-
-class WithdrawalRequestPayload(BaseModel):
-    amount: float
-    wallet_type: str = "HOUSE_REVENUE"
-    operatorBankAccount: Optional[str] = None
-    userId: Optional[int] = None
-    twoFactorCode: Optional[str] = None
-
-
 @app.get("/api/finance/treasury")
 async def api_get_treasury_status(db: AsyncSession = Depends(get_db)):
     """
@@ -2016,6 +2844,7 @@ async def api_get_treasury_status(db: AsyncSession = Depends(get_db)):
 
 @app.post("/api/finance/treasury/sweep")
 async def api_trigger_treasury_sweep(
+    request: Request,
     payload: Optional[TreasurySweepPayload] = None,
     db: AsyncSession = Depends(get_db)
 ):
@@ -2025,7 +2854,7 @@ async def api_trigger_treasury_sweep(
     COMPLIANCE ENFORCED: Blocks any attempt dipping House Balance below Required Safety Float.
     """
     from treasury_service import treasury_service, ComplianceViolationError
-    amount = payload.amount if payload else None
+    amount = float(payload.amount) if (payload and payload.amount is not None) else None
     bank_account = payload.operatorBankAccount if payload else None
     is_manual = payload.isManual if payload else True
 
@@ -2038,6 +2867,13 @@ async def api_trigger_treasury_sweep(
             transaction_type="PROFIT_WITHDRAWAL" if not is_manual else "OPERATING_PROFIT_WITHDRAWAL",
         )
         await db.commit()
+        if amount and amount >= LARGE_WITHDRAWAL_THRESHOLD_USD:
+            log_critical_event(
+                event_type="LARGE_TREASURY_SWEEP",
+                message=f"Large treasury sweep of ${amount:,.2f} USD",
+                request=request,
+                details={"amount_usd": amount, "is_manual": is_manual},
+            )
         return res
     except ComplianceViolationError as cve:
         await db.commit()  # Preserve audit log written in session
@@ -2045,13 +2881,15 @@ async def api_trigger_treasury_sweep(
     except ValueError as ve:
         await db.rollback()
         raise HTTPException(status_code=400, detail=str(ve))
-    except Exception as e:
+    except Exception:
         await db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error("Error in api_trigger_treasury_sweep:\n%s", traceback.format_exc())
+        raise HTTPException(status_code=500, detail="An error occurred")
 
 
 @app.post("/api/finance/treasury/force-sweep")
 async def api_trigger_force_sweep(
+    request: Request,
     payload: Optional[TreasurySweepPayload] = None,
     db: AsyncSession = Depends(get_db)
 ):
@@ -2072,7 +2910,7 @@ async def api_trigger_force_sweep(
 
     # Re-run calculation before executing
     fresh_calc = await treasury_service._calc_safe_withdrawal_internal(db)
-    amount = payload.amount if (payload and payload.amount is not None) else fresh_calc.available_profit
+    amount = float(payload.amount) if (payload and payload.amount is not None) else fresh_calc.available_profit
     bank_account = payload.operatorBankAccount if payload else None
 
     if amount <= 0:
@@ -2095,14 +2933,17 @@ async def api_trigger_force_sweep(
     except ComplianceViolationError as cve:
         await db.commit()  # Preserve audit log
         raise HTTPException(status_code=400, detail=str(cve))
-    except Exception as e:
+    except Exception:
         await db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error("Error in api_trigger_force_sweep:\n%s", traceback.format_exc())
+        raise HTTPException(status_code=500, detail="An error occurred")
 
 
 @app.post("/api/finance/withdraw")
 @app.post("/api/withdraw")
+@limiter.limit("10/minute")
 async def api_process_withdrawal(
+    request: Request,
     payload: WithdrawalRequestPayload,
     db: AsyncSession = Depends(get_db)
 ):
@@ -2113,17 +2954,27 @@ async def api_process_withdrawal(
     """
     from treasury_service import treasury_service, ComplianceViolationError
 
-    if payload.amount <= 0:
+    amount_val = float(payload.amount)
+    if amount_val <= 0:
         raise HTTPException(status_code=400, detail="Withdrawal amount must be strictly positive.")
+
+    if amount_val >= LARGE_WITHDRAWAL_THRESHOLD_USD:
+        log_critical_event(
+            event_type="LARGE_WITHDRAWAL",
+            message=f"Large withdrawal request of ${amount_val:,.2f} USD",
+            request=request,
+            user_id=payload.userId,
+            details={"amount_usd": amount_val, "wallet_type": payload.wallet_type},
+        )
 
     try:
         # Validate that house revenue balance does not dip below required safety float
-        await treasury_service.validate_safe_withdrawal(db, payload.amount, user_id=payload.userId)
+        await treasury_service.validate_safe_withdrawal(db, amount_val, user_id=payload.userId)
 
         # Move funds or execute withdrawal
         res = await treasury_service.execute_profit_sweep(
             session=db,
-            amount=payload.amount,
+            amount=amount_val,
             operator_bank_account=payload.operatorBankAccount,
             is_manual=True,
             transaction_type="PROFIT_WITHDRAWAL",
@@ -2133,9 +2984,10 @@ async def api_process_withdrawal(
     except ComplianceViolationError as cve:
         await db.commit()  # Commit audit log
         raise HTTPException(status_code=400, detail=str(cve))
-    except Exception as e:
+    except Exception:
         await db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error("Error in api_process_withdrawal:\n%s", traceback.format_exc())
+        raise HTTPException(status_code=500, detail="An error occurred")
 
 
 @app.get("/api/finance/treasury/audit-logs")
@@ -2160,5 +3012,65 @@ async def api_get_treasury_audit_logs(db: AsyncSession = Depends(get_db)):
         }
         for l in logs
     ]
+
+
+@app.get("/api/admin/payouts")
+async def api_get_admin_payouts(db: AsyncSession = Depends(get_db)):
+    """Fetch withdrawal transactions and settlement queue for Admin PayoutQueue."""
+    from sqlalchemy import select, desc
+    res = await db.execute(
+        select(models.Transaction)
+        .where(models.Transaction.type.in_(["withdrawal", "PROFIT_WITHDRAWAL", "OPERATING_PROFIT_WITHDRAWAL"]))
+        .order_by(desc(models.Transaction.created_at))
+        .limit(50)
+    )
+    txns = res.scalars().all()
+    user_ids = {t.user_id for t in txns if t.user_id is not None}
+    users_map = {}
+    if user_ids:
+        u_res = await db.execute(select(models.User).where(models.User.id.in_(user_ids)))
+        for u in u_res.scalars().all():
+            users_map[u.id] = u.username
+
+    return [
+        {
+            "id": t.id,
+            "userId": t.user_id,
+            "username": users_map.get(t.user_id, "System / Treasury"),
+            "type": t.type,
+            "amountUsd": t.amount,
+            "localAmount": t.local_currency_amount,
+            "exchangeRate": t.exchange_rate_used,
+            "status": t.status or "completed",
+            "description": t.description,
+            "createdAt": t.created_at.isoformat() if t.created_at else None,
+        }
+        for t in txns
+    ]
+
+
+@app.post("/api/admin/payouts/{payout_id}/action")
+async def api_admin_payout_action(payout_id: int, payload: PayoutActionPayload, db: AsyncSession = Depends(get_db)):
+    """Approve or reject a payout transaction in the queue."""
+    res = await db.execute(select(models.Transaction).where(models.Transaction.id == payout_id))
+    txn = res.scalar_one_or_none()
+    if not txn:
+        raise HTTPException(status_code=404, detail="Payout transaction not found")
+
+    if payload.action == "approve":
+        txn.status = "completed"
+    elif payload.action == "reject":
+        txn.status = "rejected"
+    else:
+        raise HTTPException(status_code=400, detail="Invalid payout action")
+
+    await db.commit()
+    await db.refresh(txn)
+    return {
+        "success": True,
+        "id": txn.id,
+        "status": txn.status,
+    }
+
 
 

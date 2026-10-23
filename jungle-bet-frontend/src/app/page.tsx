@@ -43,9 +43,9 @@ export default function Home() {
                 </span>
               </div>
 
-              {/* MAIN LOGO ON THE HOME PAGE: LARGE 'JUNGLE BET' WITH BLUE-TO-GREEN GRADIENT */}
+              {/* MAIN LOGO ON THE HOME PAGE: LARGE 'RUSH HOUR BET' WITH BLUE-TO-GREEN GRADIENT */}
               <h1 className="font-heading font-black text-4xl sm:text-6xl md:text-7xl tracking-tight uppercase italic leading-none bg-gradient-to-r from-blue-500 via-teal-400 to-[#00e5b9] bg-clip-text text-transparent drop-shadow-[0_0_35px_rgba(20,184,166,0.35)] select-none">
-                JUNGLE BET
+                RUSH HOUR BET
               </h1>
 
               {/* DESCRIPTION SECTION DIRECTLY UNDER THE MAIN LOGO */}

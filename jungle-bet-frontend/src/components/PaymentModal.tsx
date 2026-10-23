@@ -792,7 +792,7 @@ export default function PaymentModal({
                     </div>
                     <div className="flex justify-between items-center py-1 border-b border-white/10">
                       <span className="text-gray-400">Account Name:</span>
-                      <span className="font-bold text-white">Jungle Bet Interactive Ltd</span>
+                      <span className="font-bold text-white">RUSH HOUR BET Interactive Ltd</span>
                     </div>
                     <div className="flex justify-between items-center py-1">
                       <span className="text-gray-400">Payment Reference:</span>
@@ -929,7 +929,7 @@ export default function PaymentModal({
                 <p className="text-xs text-gray-300">
                   {mode === "bet"
                     ? "Your wager is locked in. Traffic AI analysis is now live!"
-                    : "Credits added to your Jungle Bet balance."}
+                    : "Credits added to your RUSH HOUR BET balance."}
                 </p>
               </div>
 

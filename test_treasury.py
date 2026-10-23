@@ -1,5 +1,5 @@
 """
-test_treasury.py - Comprehensive Verification Test Suite for Jungle Bet Treasury Management & Safe Withdrawal System
+test_treasury.py - Comprehensive Verification Test Suite for RUSH HOUR BET Treasury Management & Safe Withdrawal System
 
 Validates:
 1. MIN_SAFETY_FLOAT_PERCENTAGE constant definition (0.25 = 25%).
@@ -66,7 +66,7 @@ class TestTreasuryManagement(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         print("\n" + "=" * 65)
-        print("🏛️ JUNGLE BET TREASURY MANAGEMENT & SAFE WITHDRAWAL TEST SUITE")
+        print("🏛️ RUSH HOUR BET TREASURY MANAGEMENT & SAFE WITHDRAWAL TEST SUITE")
         print("=" * 65 + "\n")
         cls.client = TestClient(app)
 

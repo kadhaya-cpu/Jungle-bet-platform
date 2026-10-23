@@ -1,6 +1,6 @@
-# Jungle Bet — Optical Traffic Telemetry Betting Platform
+# RUSH HOUR BET — Optical Traffic Telemetry Betting Platform
 
-Jungle Bet is a real-time optical computer-vision telemetry betting platform powered by a **Vite + React 18 + TypeScript** frontend and a **FastAPI + YOLOv8 + PostgreSQL + Redis** backend.
+RUSH HOUR BET is a real-time optical computer-vision telemetry betting platform powered by a **Vite + React 18 + TypeScript** frontend and a **FastAPI + YOLOv8 + PostgreSQL + Redis** backend.
 
 ---
 

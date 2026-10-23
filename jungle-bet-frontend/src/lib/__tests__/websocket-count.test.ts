@@ -2,7 +2,7 @@ import assert from "node:assert";
 import { useWebSocketCount, VehicleCrossingEvent } from "@/hooks/useWebSocketCount";
 
 console.log("\n=======================================================");
-console.log("⚡ JUNGLE BET REAL-TIME YOLO WEBSOCKET VERIFICATION");
+console.log("⚡ RUSH HOUR BET REAL-TIME YOLO WEBSOCKET VERIFICATION");
 console.log("=======================================================\n");
 
 async function runTests() {

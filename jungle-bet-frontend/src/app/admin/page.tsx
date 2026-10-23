@@ -18,7 +18,7 @@ export default function AdminPage() {
     <div className="min-h-screen bg-[#070709] text-white flex items-center justify-center p-4">
       <div className="flex items-center gap-3 text-sm text-gray-400 font-mono">
         <span className="w-2.5 h-2.5 rounded-full bg-[var(--jungle-green)] animate-ping" />
-        <span>Routing to Jungle Bet Admin Ops...</span>
+        <span>Routing to RUSH HOUR BET Admin Ops...</span>
       </div>
     </div>
   );

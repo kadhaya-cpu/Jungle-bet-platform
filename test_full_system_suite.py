@@ -1,5 +1,5 @@
 """
-test_full_system_suite.py - Unified Full System Test Suite for Jungle Bet
+test_full_system_suite.py - Unified Full System Test Suite for RUSH HOUR BET
 
 Covers:
 1. Video-Feed & YOLOv8 Computer Vision Suite
@@ -34,7 +34,7 @@ class JungleBetSystemTestSuite(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         print("\n" + "=" * 65)
-        print("🐆 JUNGLE BET FULL SYSTEM TEST SUITE: VIDEO, BETTING & FRAUD")
+        print("🐆 RUSH HOUR BET FULL SYSTEM TEST SUITE: VIDEO, BETTING & FRAUD")
         print("=" * 65 + "\n")
         cls.client = TestClient(app)
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# Jungle Bet - Docker Image Build Pipeline
+# RUSH HOUR BET - Docker Image Build Pipeline
 # Tags:
 #   - jungle-bet-backend:latest  (GPU CUDA + YOLOv8 + FastAPI)
 #   - jungle-bet-frontend:latest (Next.js 16 Standalone Production)
@@ -18,7 +18,7 @@ YELLOW='\033[1;33m'
 NC='\033[0m'
 
 echo -e "${CYAN}====================================================================${NC}"
-echo -e "${CYAN} Jungle Bet: Production Docker Image Builder${NC}"
+echo -e "${CYAN} RUSH HOUR BET: Production Docker Image Builder${NC}"
 echo -e "${CYAN}====================================================================${NC}"
 
 if ! command -v docker >/dev/null 2>&1; then

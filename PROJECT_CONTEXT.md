@@ -1,4 +1,4 @@
-# Jungle Bet — Project Context & System Architecture
+# RUSH HOUR BET — Project Context & System Architecture
 
 **Last Updated**: October 8, 2026  
 **Status**: Production-Ready / Live Telemetry Active  
@@ -8,7 +8,7 @@
 
 ## 1. System Overview & Core Concept
 
-**Jungle Bet** is a high-frequency real-time sports betting and optical computer vision telemetry platform. Instead of traditional digital RNGs or human sporting events, Jungle Bet allows users to wager on live physical traffic streams across major world transit arteries (Los Angeles I-405, London Chelsea Bridge, Amsterdam A10).
+**RUSH HOUR BET** is a high-frequency real-time sports betting and optical computer vision telemetry platform. Instead of traditional digital RNGs or human sporting events, RUSH HOUR BET allows users to wager on live physical traffic streams across major world transit arteries (Los Angeles I-405, London Chelsea Bridge, Amsterdam A10).
 
 A bright horizontal **Optical Green Line** is superimposed on the camera feed. Computer vision models (YOLOv8) track vehicles in real-time as they cross this line. Wagers are placed on optical prediction markets (e.g. Under 10, Over 13, Exact 7 Star Pick, Exact 20 High), and bets are resolved with sub-second latency as vehicles cross the trigger line.
 
@@ -240,3 +240,23 @@ The system automatically verifies and streams the top 3 live camera junctions:
   - Emergency liquidity sweep control protected by **2-Factor Authentication (2FA)**.
   - Re-runs calculation live before executing.
   - Strictly preserves the Required Safety Float floor.
+
+---
+
+## 12. Global Expansion, USD-Only Accounting & Smart Feed Agent API Reference
+
+### Currency & Wallet Endpoints
+- `GET /api/currencies`: Returns all 22 supported local currencies (`USD`, `EUR`, `GBP`, `UGX`, `KES`, `TZS`, `NGN`, `JPY`, `CNY`, `INR`, `THB`, `SGD`, `MAD`, `EGP`, `ZAR`, `BRL`, `MXN`, `CAD`, `CHF`, `CZK`, `AUD`, `NZD`), market rates, custom rates, and confirms `internal_accounting_currency: "USD"`.
+- `POST /api/withdraw-preview`: Calculates local payout for a given USD amount (`amount_usd`, `currency`), returning `local_payout`, `custom_rate`, `market_rate`, and `spread_profit_usd`.
+- `POST /deposit` (`/api/deposit`): Converts local currency deposit into USD and credits the player's USD-only balance (`users.balance_usd` and `wallets.balance`).
+- `POST /withdraw`: Deducts USD from the player's USD-only balance and calculates local currency payout.
+
+### Global Cities & Smart Feed Manager Endpoints
+- `GET /api/cities`: Returns all 29 global cities across Asia, Africa, Americas, Europe, and Oceania with `lat`, `long`, `timezone`, `country_code`, `flag_emoji`, and `fallback_video`.
+- `GET /api/feed-manager`: Returns optimal video URL, quality score (`0-100`), health status, and fallback readiness for each city (`?city=Tokyo` or `?region=Asia`).
+- `GET /api/feed-manager/{city}`: Returns optimal video URL for a specific city.
+- `POST /api/feed-manager/override`: Admin dashboard override to manually set a city's feed URL.
+- `DELETE /api/feed-manager/override/{city}`: Clears manual override and restores automated Smart Feed Agent selection.
+- `POST /api/feed-manager/failover`: Emergency feed failover (`< 2 seconds` SLA) that switches to the next healthy feed or `/static/fallback_videos/{city}.mp4` and sends Telegram + email alerts.
+- `POST /api/feed-manager/scan`: Triggers an immediate health check & discovery scan across all cities.
+

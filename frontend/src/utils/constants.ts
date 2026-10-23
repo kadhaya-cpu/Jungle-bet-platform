@@ -1,5 +1,5 @@
 /**
- * Jungle Bet — Global Constants, API Endpoints, Currencies & Market Multipliers
+ * RUSH HOUR BET — Global Constants, API Endpoints, Currencies & Market Multipliers
  */
 
 export const API_BASE_URL =
@@ -20,13 +20,18 @@ export const API_ENDPOINTS = {
   },
   WALLET: {
     BALANCE: '/me/balance',
+    CURRENCIES: '/api/currencies',
     DEPOSIT: '/deposit',
     WITHDRAW: '/withdraw',
+    WITHDRAW_PREVIEW: '/api/withdraw-preview',
     TRANSACTIONS: '/transactions',
   },
   BETTING: {
     GAMES: '/api/games',
     BET: '/api/bet',
+    CITIES: '/api/cities',
+    FEED_MANAGER: '/api/feed-manager',
+    FEED_MANAGER_CITY: (city: string) => `/api/feed-manager/${encodeURIComponent(city)}`,
     FEEDS: '/camera-feeds',
     FEED_DETAIL: (id: number | string) => `/camera-feeds/${id}`,
     FEED_STREAM: (id: number | string) => `/camera-feeds/${id}/stream`,
@@ -45,6 +50,9 @@ export const API_ENDPOINTS = {
     REJECT_WITHDRAWAL: (id: number | string) => `/api/withdraw/${id}/reject`,
     FX_RATES: '/api/fx-rates',
     FX_RATES_REFRESH: '/api/fx-rates/refresh',
+    FEED_OVERRIDE: '/api/feed-manager/override',
+    FEED_FAILOVER: '/api/feed-manager/failover',
+    FEED_SCAN: '/api/feed-manager/scan',
     BAN_USER_BY_ID: (id: number | string) => `/api/users/${id}/ban`,
     FLAGGED_USERS: '/api/admin/flagged',
     BAN_USER: '/api/admin/ban',

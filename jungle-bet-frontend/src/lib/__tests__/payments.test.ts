@@ -11,7 +11,7 @@ import { paymentDb } from "../payment-db";
 
 async function runTests() {
   console.log("\n=======================================================");
-  console.log("🦁 JUNGLE BET MULTI-COUNTRY PAYMENT GATEWAY TEST SUITE");
+  console.log("🦁 RUSH HOUR BET MULTI-COUNTRY PAYMENT GATEWAY TEST SUITE");
   console.log("=======================================================\n");
 
   let passed = 0;

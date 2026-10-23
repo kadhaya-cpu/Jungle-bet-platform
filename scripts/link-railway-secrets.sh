@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# Jungle Bet - Sync & Link Local Environment Variables (.env) to Railway Secrets
+# RUSH HOUR BET - Sync & Link Local Environment Variables (.env) to Railway Secrets
 # ==============================================================================
 set -e
 
@@ -11,7 +11,7 @@ ENV_FILE="$PROJECT_ROOT/.env"
 FRONTEND_ENV="$PROJECT_ROOT/jungle-bet-frontend/.env.local"
 
 echo "=================================================================="
-echo " Jungle Bet: Railway Secrets & Environment Variable Linker"
+echo " RUSH HOUR BET: Railway Secrets & Environment Variable Linker"
 echo "=================================================================="
 
 if [ ! -f "$ENV_FILE" ]; then
@@ -33,7 +33,7 @@ echo "Exporting environment variables map for Railway..."
 
 # Produce a clean key-value dump excluding internal comments
 cat << 'EOF' > "$PROJECT_ROOT/railway-secrets.env"
-# Railway Shared Secrets (Generated from Jungle Bet local .env)
+# Railway Shared Secrets (Generated from RUSH HOUR BET local .env)
 DATABASE_URL=${{Postgres.DATABASE_URL}}
 REDIS_URL=${{Redis.REDIS_URL}}
 CELERY_BROKER_URL=${{Redis.REDIS_URL}}

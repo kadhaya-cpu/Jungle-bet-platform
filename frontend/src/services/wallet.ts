@@ -60,11 +60,50 @@ export interface WithdrawResponse {
   transaction_id: number;
 }
 
+export interface WithdrawPreviewResponse {
+  status: string;
+  internal_currency: string;
+  amount_usd: number;
+  currency: string;
+  currency_name: string;
+  symbol: string;
+  flag: string;
+  market_rate: number;
+  custom_rate: number;
+  exchange_rate_used: number;
+  local_payout: number;
+  payout_local: number;
+  local_currency_amount: number;
+  market_local_equivalent: number;
+  spread_diff: number;
+  spread_profit_usd: number;
+  spread_profit_local: number;
+  min_withdrawal_usd: number;
+  meets_minimum: boolean;
+  is_eligible: boolean;
+}
+
 /**
  * Fetch user USD balance & preferred currency from GET /me/balance
  */
 export async function getWalletBalance(): Promise<BalanceResponse> {
   const { data } = await api.get<BalanceResponse>(API_ENDPOINTS.WALLET.BALANCE);
+  return data;
+}
+
+/**
+ * Fetch supported local currencies from GET /api/currencies
+ */
+export async function getSupportedCurrencies(): Promise<Record<string, unknown>> {
+  const { data } = await api.get<Record<string, unknown>>(API_ENDPOINTS.WALLET.CURRENCIES);
+  return data;
+}
+
+/**
+ * Preview local currency payout for a USD withdrawal amount via POST /api/withdraw-preview
+ */
+export async function previewWithdrawal(payload: WithdrawPayload): Promise<WithdrawPreviewResponse> {
+  const { data } = await api.post<WithdrawPreviewResponse>(API_ENDPOINTS.WALLET.WITHDRAW_PREVIEW, payload);
   return data;
 }
 

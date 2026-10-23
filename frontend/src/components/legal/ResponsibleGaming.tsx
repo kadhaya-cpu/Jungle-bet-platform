@@ -119,7 +119,7 @@ export const ResponsibleGaming: React.FC<ResponsibleGamingProps> = ({
             1. Strict 18+ Age Limit & Minor Protection
           </h3>
           <p className="text-red-300 font-medium">
-            1.1. No person under the age of 18 is permitted to create an account, deposit funds, view live betting odds, or place wagers on Jungle Bet.
+            1.1. No person under the age of 18 is permitted to create an account, deposit funds, view live betting odds, or place wagers on RUSH HOUR BET.
           </p>
           <p>
             1.2. Parents and guardians are strongly encouraged to install parental control software (such as Net Nanny, CyberPatrol, or Qustodio) and to keep login credentials and payment methods secure from minors.
@@ -150,7 +150,7 @@ export const ResponsibleGaming: React.FC<ResponsibleGamingProps> = ({
             3. Self-Exclusion & Cooling-Off Options
           </h3>
           <p>
-            Jungle Bet provides binding player protection tools to restrict your access to betting markets and deposits at any time:
+            RUSH HOUR BET provides binding player protection tools to restrict your access to betting markets and deposits at any time:
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
             <button

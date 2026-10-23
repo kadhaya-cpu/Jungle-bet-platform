@@ -1,5 +1,5 @@
 """
-traffic_cv.py - Computer Vision Module for Jungle Bet
+traffic_cv.py - Computer Vision Module for RUSH HOUR BET
 Real-time traffic vehicle detection, tracking, and lane counting using YOLOv8 (CPU optimized).
 """
 

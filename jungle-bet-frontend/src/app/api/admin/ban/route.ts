@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
       authUserService.banUser(userId);
       return NextResponse.json({
         success: true,
-        message: `User ${user.name} (${user.id}) has been banned from Jungle Bet.`,
+        message: `User ${user.name} (${user.id}) has been banned from RUSH HOUR BET.`,
         user: authUserService.findUserById(userId),
       });
     } else if (action === "unban") {

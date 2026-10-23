@@ -1,0 +1,1133 @@
+{
+  "platform": "RUSH HOUR BET",
+  "version": "3.0.0",
+  "health_check_interval_seconds": 30,
+  "emergency_failover_timeout_seconds": 2.0,
+  "fallback_video_directory": "/static/fallback_videos",
+  "content_filter": {
+    "required_keywords": [
+      "traffic",
+      "highway",
+      "expressway",
+      "freeway",
+      "motorway",
+      "autobahn",
+      "intersection",
+      "junction",
+      "bridge",
+      "overpass",
+      "corridor",
+      "arterial",
+      "ring road",
+      "boulevard",
+      "avenue",
+      "street",
+      "road",
+      "tunnel",
+      "interchange",
+      "crossing",
+      "lanes",
+      "cam",
+      "caltrans",
+      "tfl",
+      "rijkswaterstaat",
+      "dot"
+    ],
+    "rejected_keywords": [
+      "pedestrian only",
+      "walking tour",
+      "park bench",
+      "nature reserve",
+      "wildlife",
+      "zoo",
+      "bird feeder",
+      "aquarium",
+      "beach boardwalk",
+      "garden cam",
+      "forest",
+      "hiking trail",
+      "indoor",
+      "cafe interior",
+      "lobby",
+      "puppy",
+      "kitten"
+    ]
+  },
+  "cities": {
+    "tokyo": {
+      "id": "tokyo",
+      "feed_id": 101,
+      "name": "Tokyo",
+      "country": "Japan",
+      "country_code": "JP",
+      "flag_emoji": "🇯🇵",
+      "region": "Asia",
+      "timezone": "Asia/Tokyo",
+      "coordinates": { "lat": 35.6762, "long": 139.6503 },
+      "corridor": "Shuto Expressway C1 & Shibuya Arterial",
+      "fallback_video": "/static/fallback_videos/tokyo.mp4",
+      "sources": [
+        {
+          "source_id": "tokyo_yt_1",
+          "provider": "youtube",
+          "priority": 1,
+          "title": "Tokyo Shuto Expressway C1 Live Highway Traffic Cam",
+          "url": "https://www.youtube.com/watch?v=DjdUEyjx8GM",
+          "video_id": "DjdUEyjx8GM",
+          "angle": "elevated_highway",
+          "zoom_level": "optimal_medium",
+          "resolution": "1080p",
+          "fps": 30
+        },
+        {
+          "source_id": "tokyo_traffic_api_2",
+          "provider": "traffic_cam",
+          "priority": 2,
+          "title": "JARTIC Metropolitan Expressway Route 3",
+          "url": "https://stream.rushhourbet.io/asia/tokyo_c1.m3u8",
+          "angle": "overhead_gantry",
+          "zoom_level": "optimal_medium",
+          "resolution": "1080p",
+          "fps": 30
+        },
+        {
+          "source_id": "tokyo_earthcam_3",
+          "provider": "earthcam",
+          "priority": 3,
+          "title": "Tokyo Rainbow Bridge Expressway Approach",
+          "url": "https://videos-3.earthcam.com/fecnetwork/tokyo_highway.flv/playlist.m3u8",
+          "angle": "bridge_overpass",
+          "zoom_level": "wide",
+          "resolution": "720p",
+          "fps": 25
+        }
+      ]
+    },
+    "shanghai": {
+      "id": "shanghai",
+      "feed_id": 102,
+      "name": "Shanghai",
+      "country": "China",
+      "country_code": "CN",
+      "flag_emoji": "🇨🇳",
+      "region": "Asia",
+      "timezone": "Asia/Shanghai",
+      "coordinates": { "lat": 31.2304, "long": 121.4737 },
+      "corridor": "Yan'an Elevated Road & Nanpu Bridge Interchange",
+      "fallback_video": "/static/fallback_videos/shanghai.mp4",
+      "sources": [
+        {
+          "source_id": "shanghai_yt_1",
+          "provider": "youtube",
+          "priority": 1,
+          "title": "Shanghai Yan'an Elevated Highway Live Traffic Stream",
+          "url": "https://www.youtube.com/watch?v=7HaJArMDKgI",
+          "video_id": "7HaJArMDKgI",
+          "angle": "elevated_highway",
+          "zoom_level": "optimal_medium",
+          "resolution": "1080p",
+          "fps": 30
+        },
+        {
+          "source_id": "shanghai_traffic_2",
+          "provider": "traffic_cam",
+          "priority": 2,
+          "title": "Nanpu Spiral Bridge Multi-Lane Arterial Cam",
+          "url": "https://stream.rushhourbet.io/asia/shanghai_nanpu.m3u8",
+          "angle": "overhead_gantry",
+          "zoom_level": "optimal_medium",
+          "resolution": "1080p",
+          "fps": 30
+        }
+      ]
+    },
+    "beijing": {
+      "id": "beijing",
+      "feed_id": 103,
+      "name": "Beijing",
+      "country": "China",
+      "country_code": "CN",
+      "flag_emoji": "🇨🇳",
+      "region": "Asia",
+      "timezone": "Asia/Shanghai",
+      "coordinates": { "lat": 39.9042, "long": 116.4074 },
+      "corridor": "East 3rd Ring Road & Guomao Bridge",
+      "fallback_video": "/static/fallback_videos/beijing.mp4",
+      "sources": [
+        {
+          "source_id": "beijing_yt_1",
+          "provider": "youtube",
+          "priority": 1,
+          "title": "Beijing 3rd Ring Road Guomao Interchange Traffic Cam",
+          "url": "https://www.youtube.com/watch?v=p0Qhe4vhYLQ",
+          "video_id": "p0Qhe4vhYLQ",
+          "angle": "elevated_highway",
+          "zoom_level": "optimal_medium",
+          "resolution": "1080p",
+          "fps": 30
+        },
+        {
+          "source_id": "beijing_traffic_2",
+          "provider": "traffic_cam",
+          "priority": 2,
+          "title": "Beijing Chang'an Avenue Arterial Telemetry",
+          "url": "https://stream.rushhourbet.io/asia/beijing_ring3.m3u8",
+          "angle": "overhead_gantry",
+          "zoom_level": "optimal_medium",
+          "resolution": "720p",
+          "fps": 25
+        }
+      ]
+    },
+    "mumbai": {
+      "id": "mumbai",
+      "feed_id": 104,
+      "name": "Mumbai",
+      "country": "India",
+      "country_code": "IN",
+      "flag_emoji": "🇮🇳",
+      "region": "Asia",
+      "timezone": "Asia/Kolkata",
+      "coordinates": { "lat": 19.0760, "long": 72.8777 },
+      "corridor": "Bandra-Worli Sea Link & Western Express Highway",
+      "fallback_video": "/static/fallback_videos/mumbai.mp4",
+      "sources": [
+        {
+          "source_id": "mumbai_yt_1",
+          "provider": "youtube",
+          "priority": 1,
+          "title": "Mumbai Western Express Highway Live Traffic Feed",
+          "url": "https://www.youtube.com/watch?v=8pPvNqOb6RA",
+          "video_id": "8pPvNqOb6RA",
+          "angle": "elevated_highway",
+          "zoom_level": "optimal_medium",
+          "resolution": "1080p",
+          "fps": 30
+        },
+        {
+          "source_id": "mumbai_traffic_2",
+          "provider": "traffic_cam",
+          "priority": 2,
+          "title": "Bandra-Worli Sea Link Toll Plaza Corridor",
+          "url": "https://stream.rushhourbet.io/asia/mumbai_sealink.m3u8",
+          "angle": "bridge_overpass",
+          "zoom_level": "optimal_medium",
+          "resolution": "720p",
+          "fps": 25
+        }
+      ]
+    },
+    "bangkok": {
+      "id": "bangkok",
+      "feed_id": 105,
+      "name": "Bangkok",
+      "country": "Thailand",
+      "country_code": "TH",
+      "flag_emoji": "🇹🇭",
+      "region": "Asia",
+      "timezone": "Asia/Bangkok",
+      "coordinates": { "lat": 13.7563, "long": 100.5018 },
+      "corridor": "Sukhumvit Road & Chalerm Maha Nakhon Expressway",
+      "fallback_video": "/static/fallback_videos/bangkok.mp4",
+      "sources": [
+        {
+          "source_id": "bangkok_yt_1",
+          "provider": "youtube",
+          "priority": 1,
+          "title": "Bangkok Asoke Intersection & Sukhumvit Road Traffic Cam",
+          "url": "https://www.youtube.com/watch?v=UemFRPrl1hk",
+          "video_id": "UemFRPrl1hk",
+          "angle": "elevated_highway",
+          "zoom_level": "optimal_medium",
+          "resolution": "1080p",
+          "fps": 30
+        },
+        {
+          "source_id": "bangkok_traffic_2",
+          "provider": "traffic_cam",
+          "priority": 2,
+          "title": "BMA Din Daeng Expressway Junction Live",
+          "url": "https://stream.rushhourbet.io/asia/bangkok_expressway.m3u8",
+          "angle": "overhead_gantry",
+          "zoom_level": "optimal_medium",
+          "resolution": "720p",
+          "fps": 30
+        }
+      ]
+    },
+    "singapore": {
+      "id": "singapore",
+      "feed_id": 106,
+      "name": "Singapore",
+      "country": "Singapore",
+      "country_code": "SG",
+      "flag_emoji": "🇸🇬",
+      "region": "Asia",
+      "timezone": "Asia/Singapore",
+      "coordinates": { "lat": 1.3521, "long": 103.8198 },
+      "corridor": "Pan Island Expressway (PIE) & Marina Coastal Expressway",
+      "fallback_video": "/static/fallback_videos/singapore.mp4",
+      "sources": [
+        {
+          "source_id": "singapore_yt_1",
+          "provider": "youtube",
+          "priority": 1,
+          "title": "Singapore LTA Pan Island Expressway Live Traffic Camera",
+          "url": "https://www.youtube.com/watch?v=w_Ma8oQLmSM",
+          "video_id": "w_Ma8oQLmSM",
+          "angle": "overhead_gantry",
+          "zoom_level": "optimal_medium",
+          "resolution": "1080p",
+          "fps": 30
+        },
+        {
+          "source_id": "singapore_traffic_2",
+          "provider": "traffic_cam",
+          "priority": 2,
+          "title": "LTA Causeway Woodlands Checkpoint Highway Feed",
+          "url": "https://stream.rushhourbet.io/asia/singapore_pie.m3u8",
+          "angle": "elevated_highway",
+          "zoom_level": "optimal_medium",
+          "resolution": "1080p",
+          "fps": 30
+        }
+      ]
+    },
+    "casablanca": {
+      "id": "casablanca",
+      "feed_id": 201,
+      "name": "Casablanca",
+      "country": "Morocco",
+      "country_code": "MA",
+      "flag_emoji": "🇲🇦",
+      "region": "Africa",
+      "timezone": "Africa/Casablanca",
+      "coordinates": { "lat": 33.5731, "long": -7.5898 },
+      "corridor": "Autoroute A1 & Boulevard Zerktouni",
+      "fallback_video": "/static/fallback_videos/casablanca.mp4",
+      "sources": [
+        {
+          "source_id": "casablanca_yt_1",
+          "provider": "youtube",
+          "priority": 1,
+          "title": "Casablanca Autoroute Urbaine & Zerktouni Traffic Cam",
+          "url": "https://www.youtube.com/watch?v=H2pf2Xh7B6I",
+          "video_id": "H2pf2Xh7B6I",
+          "angle": "elevated_highway",
+          "zoom_level": "optimal_medium",
+          "resolution": "1080p",
+          "fps": 30
+        },
+        {
+          "source_id": "casablanca_traffic_2",
+          "provider": "traffic_cam",
+          "priority": 2,
+          "title": "ADM Casablanca-Rabat A1 Highway Telemetry",
+          "url": "https://stream.rushhourbet.io/africa/casablanca_a1.m3u8",
+          "angle": "overhead_gantry",
+          "zoom_level": "optimal_medium",
+          "resolution": "720p",
+          "fps": 25
+        }
+      ]
+    },
+    "lagos": {
+      "id": "lagos",
+      "feed_id": 202,
+      "name": "Lagos",
+      "country": "Nigeria",
+      "country_code": "NG",
+      "flag_emoji": "🇳🇬",
+      "region": "Africa",
+      "timezone": "Africa/Lagos",
+      "coordinates": { "lat": 6.5244, "long": 3.3792 },
+      "corridor": "Third Mainland Bridge & Lekki-Epe Expressway",
+      "fallback_video": "/static/fallback_videos/lagos.mp4",
+      "sources": [
+        {
+          "source_id": "lagos_yt_1",
+          "provider": "youtube",
+          "priority": 1,
+          "title": "Lagos Third Mainland Bridge & Lekki Toll Expressway Live",
+          "url": "https://www.youtube.com/watch?v=9ZfN87gSjvI",
+          "video_id": "9ZfN87gSjvI",
+          "angle": "bridge_overpass",
+          "zoom_level": "optimal_medium",
+          "resolution": "1080p",
+          "fps": 30
+        },
+        {
+          "source_id": "lagos_traffic_2",
+          "provider": "traffic_cam",
+          "priority": 2,
+          "title": "LASG Lekki-Ikoyi Link Bridge Traffic Corridor",
+          "url": "https://stream.rushhourbet.io/africa/lagos_3mb.m3u8",
+          "angle": "elevated_highway",
+          "zoom_level": "optimal_medium",
+          "resolution": "720p",
+          "fps": 25
+        }
+      ]
+    },
+    "cairo": {
+      "id": "cairo",
+      "feed_id": 203,
+      "name": "Cairo",
+      "country": "Egypt",
+      "country_code": "EG",
+      "flag_emoji": "🇪🇬",
+      "region": "Africa",
+      "timezone": "Africa/Cairo",
+      "coordinates": { "lat": 30.0444, "long": 31.2357 },
+      "corridor": "6th of October Bridge & Cairo Ring Road",
+      "fallback_video": "/static/fallback_videos/cairo.mp4",
+      "sources": [
+        {
+          "source_id": "cairo_yt_1",
+          "provider": "youtube",
+          "priority": 1,
+          "title": "Cairo 6th of October Bridge & Nile Overpass Traffic Cam",
+          "url": "https://www.youtube.com/watch?v=1X4T6M7W8K0",
+          "video_id": "1X4T6M7W8K0",
+          "angle": "bridge_overpass",
+          "zoom_level": "optimal_medium",
+          "resolution": "1080p",
+          "fps": 30
+        },
+        {
+          "source_id": "cairo_traffic_2",
+          "provider": "traffic_cam",
+          "priority": 2,
+          "title": "Cairo Ring Road Autostrad Interchange",
+          "url": "https://stream.rushhourbet.io/africa/cairo_october_bridge.m3u8",
+          "angle": "elevated_highway",
+          "zoom_level": "optimal_medium",
+          "resolution": "720p",
+          "fps": 25
+        }
+      ]
+    },
+    "nairobi": {
+      "id": "nairobi",
+      "feed_id": 204,
+      "name": "Nairobi",
+      "country": "Kenya",
+      "country_code": "KE",
+      "flag_emoji": "🇰🇪",
+      "region": "Africa",
+      "timezone": "Africa/Nairobi",
+      "coordinates": { "lat": -1.2921, "long": 36.8219 },
+      "corridor": "Nairobi Expressway & Mombasa Road (A104)",
+      "fallback_video": "/static/fallback_videos/nairobi.mp4",
+      "sources": [
+        {
+          "source_id": "nairobi_yt_1",
+          "provider": "youtube",
+          "priority": 1,
+          "title": "Nairobi Expressway Westlands Toll & Thika Superhighway Cam",
+          "url": "https://www.youtube.com/watch?v=3V8K9L2M4N6",
+          "video_id": "3V8K9L2M4N6",
+          "angle": "elevated_highway",
+          "zoom_level": "optimal_medium",
+          "resolution": "1080p",
+          "fps": 30
+        },
+        {
+          "source_id": "nairobi_traffic_2",
+          "provider": "traffic_cam",
+          "priority": 2,
+          "title": "KeNHA Thika Superhighway Survey Overpass",
+          "url": "https://stream.rushhourbet.io/africa/nairobi_expressway.m3u8",
+          "angle": "overhead_gantry",
+          "zoom_level": "optimal_medium",
+          "resolution": "1080p",
+          "fps": 30
+        }
+      ]
+    },
+    "johannesburg": {
+      "id": "johannesburg",
+      "feed_id": 205,
+      "name": "Johannesburg",
+      "country": "South Africa",
+      "country_code": "ZA",
+      "flag_emoji": "🇿🇦",
+      "region": "Africa",
+      "timezone": "Africa/Johannesburg",
+      "coordinates": { "lat": -26.2041, "long": 28.0473 },
+      "corridor": "N1 Western Bypass & Gillooly's Interchange",
+      "fallback_video": "/static/fallback_videos/johannesburg.mp4",
+      "sources": [
+        {
+          "source_id": "johannesburg_yt_1",
+          "provider": "youtube",
+          "priority": 1,
+          "title": "Johannesburg SANRAL N1 Buccleuch & M1 Highway Traffic Cam",
+          "url": "https://www.youtube.com/watch?v=5P7R2T9W1Y4",
+          "video_id": "5P7R2T9W1Y4",
+          "angle": "overhead_gantry",
+          "zoom_level": "optimal_medium",
+          "resolution": "1080p",
+          "fps": 30
+        },
+        {
+          "source_id": "johannesburg_traffic_2",
+          "provider": "traffic_cam",
+          "priority": 2,
+          "title": "SANRAL Gauteng N3 Gillooly's Interchange",
+          "url": "https://stream.rushhourbet.io/africa/joburg_n1.m3u8",
+          "angle": "elevated_highway",
+          "zoom_level": "optimal_medium",
+          "resolution": "720p",
+          "fps": 25
+        }
+      ]
+    },
+    "new_york": {
+      "id": "new_york",
+      "feed_id": 301,
+      "name": "New York",
+      "country": "United States",
+      "country_code": "US",
+      "flag_emoji": "🇺🇸",
+      "region": "Americas",
+      "timezone": "America/New_York",
+      "coordinates": { "lat": 40.7128, "long": -74.0060 },
+      "corridor": "FDR Drive & Brooklyn Bridge Approach",
+      "fallback_video": "/static/fallback_videos/new_york.mp4",
+      "sources": [
+        {
+          "source_id": "new_york_yt_1",
+          "provider": "youtube",
+          "priority": 1,
+          "title": "New York City I-495 Lincoln Tunnel Helix & FDR Drive Traffic",
+          "url": "https://www.youtube.com/watch?v=1EiC9bvVGnk",
+          "video_id": "1EiC9bvVGnk",
+          "angle": "elevated_highway",
+          "zoom_level": "optimal_medium",
+          "resolution": "1080p",
+          "fps": 30
+        },
+        {
+          "source_id": "new_york_earthcam_2",
+          "provider": "earthcam",
+          "priority": 2,
+          "title": "EarthCam Manhattan Midtown 5th Ave & 42nd St Arterial",
+          "url": "https://videos-3.earthcam.com/fecnetwork/nyc_midtown_traffic.flv/playlist.m3u8",
+          "angle": "overhead_gantry",
+          "zoom_level": "optimal_medium",
+          "resolution": "1080p",
+          "fps": 30
+        }
+      ]
+    },
+    "los_angeles": {
+      "id": "los_angeles",
+      "feed_id": 1,
+      "name": "Los Angeles",
+      "country": "United States",
+      "country_code": "US",
+      "flag_emoji": "🇺🇸",
+      "region": "Americas",
+      "timezone": "America/Los_Angeles",
+      "coordinates": { "lat": 34.0522, "long": -118.2437 },
+      "corridor": "Caltrans I-405 Culver Overpass & I-110 Interchange",
+      "fallback_video": "/static/fallback_videos/los_angeles.mp4",
+      "sources": [
+        {
+          "source_id": "la_caltrans_1",
+          "provider": "traffic_cam",
+          "priority": 1,
+          "title": "Caltrans District 7 I-405 Culver Blvd Overpass",
+          "url": "https://wzmedia.dot.ca.gov/D12/SB405CulverBlvd.stream/playlist.m3u8",
+          "angle": "overhead_gantry",
+          "zoom_level": "optimal_medium",
+          "resolution": "1080p",
+          "fps": 30
+        },
+        {
+          "source_id": "la_yt_2",
+          "provider": "youtube",
+          "priority": 2,
+          "title": "Los Angeles I-405 Freeway Live 10-Lane Traffic Stream",
+          "url": "https://www.youtube.com/watch?v=f3NWvUV8MD8",
+          "video_id": "f3NWvUV8MD8",
+          "angle": "elevated_highway",
+          "zoom_level": "optimal_medium",
+          "resolution": "1080p",
+          "fps": 30
+        }
+      ]
+    },
+    "sao_paulo": {
+      "id": "sao_paulo",
+      "feed_id": 303,
+      "name": "São Paulo",
+      "country": "Brazil",
+      "country_code": "BR",
+      "flag_emoji": "🇧🇷",
+      "region": "Americas",
+      "timezone": "America/Sao_Paulo",
+      "coordinates": { "lat": -23.5505, "long": -46.6333 },
+      "corridor": "Marginal Pinheiros & Avenida Paulista",
+      "fallback_video": "/static/fallback_videos/sao_paulo.mp4",
+      "sources": [
+        {
+          "source_id": "sao_paulo_yt_1",
+          "provider": "youtube",
+          "priority": 1,
+          "title": "São Paulo Marginal Pinheiros & Ponte Estaiada Traffic Cam",
+          "url": "https://www.youtube.com/watch?v=6M8P4R2K9T0",
+          "video_id": "6M8P4R2K9T0",
+          "angle": "bridge_overpass",
+          "zoom_level": "optimal_medium",
+          "resolution": "1080p",
+          "fps": 30
+        },
+        {
+          "source_id": "sao_paulo_traffic_2",
+          "provider": "traffic_cam",
+          "priority": 2,
+          "title": "CET São Paulo Marginal Tietê Expressway",
+          "url": "https://stream.rushhourbet.io/americas/saopaulo_pinheiros.m3u8",
+          "angle": "elevated_highway",
+          "zoom_level": "optimal_medium",
+          "resolution": "720p",
+          "fps": 25
+        }
+      ]
+    },
+    "mexico_city": {
+      "id": "mexico_city",
+      "feed_id": 304,
+      "name": "Mexico City",
+      "country": "Mexico",
+      "country_code": "MX",
+      "flag_emoji": "🇲🇽",
+      "region": "Americas",
+      "timezone": "America/Mexico_City",
+      "coordinates": { "lat": 19.4326, "long": -99.1332 },
+      "corridor": "Paseo de la Reforma & Anillo Periférico",
+      "fallback_video": "/static/fallback_videos/mexico_city.mp4",
+      "sources": [
+        {
+          "source_id": "mexico_city_yt_1",
+          "provider": "youtube",
+          "priority": 1,
+          "title": "CDMX Paseo de la Reforma & Periférico Vehicular Traffic Cam",
+          "url": "https://www.youtube.com/watch?v=4N7K2P9M1X8",
+          "video_id": "4N7K2P9M1X8",
+          "angle": "elevated_highway",
+          "zoom_level": "optimal_medium",
+          "resolution": "1080p",
+          "fps": 30
+        },
+        {
+          "source_id": "mexico_city_traffic_2",
+          "provider": "traffic_cam",
+          "priority": 2,
+          "title": "C5 CDMX Viaducto Miguel Alemán Overpass",
+          "url": "https://stream.rushhourbet.io/americas/cdmx_reforma.m3u8",
+          "angle": "overhead_gantry",
+          "zoom_level": "optimal_medium",
+          "resolution": "720p",
+          "fps": 25
+        }
+      ]
+    },
+    "toronto": {
+      "id": "toronto",
+      "feed_id": 305,
+      "name": "Toronto",
+      "country": "Canada",
+      "country_code": "CA",
+      "flag_emoji": "🇨🇦",
+      "region": "Americas",
+      "timezone": "America/Toronto",
+      "coordinates": { "lat": 43.6532, "long": -79.3832 },
+      "corridor": "Highway 401 Collectors & Gardiner Expressway",
+      "fallback_video": "/static/fallback_videos/toronto.mp4",
+      "sources": [
+        {
+          "source_id": "toronto_yt_1",
+          "provider": "youtube",
+          "priority": 1,
+          "title": "Toronto MTO Highway 401 & Gardiner Expressway Live Traffic",
+          "url": "https://www.youtube.com/watch?v=2K9M4P7T1W6",
+          "video_id": "2K9M4P7T1W6",
+          "angle": "overhead_gantry",
+          "zoom_level": "optimal_medium",
+          "resolution": "1080p",
+          "fps": 30
+        },
+        {
+          "source_id": "toronto_traffic_2",
+          "provider": "traffic_cam",
+          "priority": 2,
+          "title": "Ontario 511 Highway 401 Yonge St Overpass",
+          "url": "https://stream.rushhourbet.io/americas/toronto_hwy401.m3u8",
+          "angle": "overhead_gantry",
+          "zoom_level": "optimal_medium",
+          "resolution": "1080p",
+          "fps": 30
+        }
+      ]
+    },
+    "london": {
+      "id": "london",
+      "feed_id": 2,
+      "name": "London",
+      "country": "United Kingdom",
+      "country_code": "GB",
+      "flag_emoji": "🇬🇧",
+      "region": "Europe",
+      "timezone": "Europe/London",
+      "coordinates": { "lat": 51.5074, "long": -0.1278 },
+      "corridor": "TfL Chelsea Bridge Junction & Tower Bridge Approach",
+      "fallback_video": "/static/fallback_videos/london.mp4",
+      "sources": [
+        {
+          "source_id": "london_tfl_1",
+          "provider": "traffic_cam",
+          "priority": 1,
+          "title": "TfL JamCam Chelsea Bridge & Embankment Junction",
+          "url": "https://s3-eu-west-1.amazonaws.com/jamcams.tfl.gov.uk/00001.04641.mp4",
+          "angle": "overhead_gantry",
+          "zoom_level": "optimal_medium",
+          "resolution": "1080p",
+          "fps": 30
+        },
+        {
+          "source_id": "london_yt_2",
+          "provider": "youtube",
+          "priority": 2,
+          "title": "London Tower Bridge & Thames Arterial Traffic Live Cam",
+          "url": "https://www.youtube.com/watch?v=2srYSk0_yrE",
+          "video_id": "2srYSk0_yrE",
+          "angle": "bridge_overpass",
+          "zoom_level": "optimal_medium",
+          "resolution": "1080p",
+          "fps": 30
+        }
+      ]
+    },
+    "paris": {
+      "id": "paris",
+      "feed_id": 402,
+      "name": "Paris",
+      "country": "France",
+      "country_code": "FR",
+      "flag_emoji": "🇫🇷",
+      "region": "Europe",
+      "timezone": "Europe/Paris",
+      "coordinates": { "lat": 48.8566, "long": 2.3522 },
+      "corridor": "Boulevard Périphérique & Avenue des Champs-Élysées",
+      "fallback_video": "/static/fallback_videos/paris.mp4",
+      "sources": [
+        {
+          "source_id": "paris_yt_1",
+          "provider": "youtube",
+          "priority": 1,
+          "title": "Paris Champs-Élysées & Place de la Concorde Traffic Cam",
+          "url": "https://www.youtube.com/watch?v=kw0VA9RSIPk",
+          "video_id": "kw0VA9RSIPk",
+          "angle": "elevated_highway",
+          "zoom_level": "optimal_medium",
+          "resolution": "1080p",
+          "fps": 30
+        },
+        {
+          "source_id": "paris_traffic_2",
+          "provider": "traffic_cam",
+          "priority": 2,
+          "title": "Sytadin Boulevard Périphérique Porte Maillot",
+          "url": "https://stream.rushhourbet.io/europe/paris_peripherique.m3u8",
+          "angle": "overhead_gantry",
+          "zoom_level": "optimal_medium",
+          "resolution": "1080p",
+          "fps": 30
+        }
+      ]
+    },
+    "berlin": {
+      "id": "berlin",
+      "feed_id": 403,
+      "name": "Berlin",
+      "country": "Germany",
+      "country_code": "DE",
+      "flag_emoji": "🇩🇪",
+      "region": "Europe",
+      "timezone": "Europe/Berlin",
+      "coordinates": { "lat": 52.5200, "long": 13.4050 },
+      "corridor": "Bundesautobahn 100 & Alexanderplatz Artery",
+      "fallback_video": "/static/fallback_videos/berlin.mp4",
+      "sources": [
+        {
+          "source_id": "berlin_yt_1",
+          "provider": "youtube",
+          "priority": 1,
+          "title": "Berlin A100 Stadtring & Mitte Arterial Traffic Live",
+          "url": "https://www.youtube.com/watch?v=SgeQKaiJGNU",
+          "video_id": "SgeQKaiJGNU",
+          "angle": "elevated_highway",
+          "zoom_level": "optimal_medium",
+          "resolution": "1080p",
+          "fps": 30
+        },
+        {
+          "source_id": "berlin_traffic_2",
+          "provider": "traffic_cam",
+          "priority": 2,
+          "title": "VIZ Berlin Autobahn A100 Funkturm Junction",
+          "url": "https://stream.rushhourbet.io/europe/berlin_a100.m3u8",
+          "angle": "overhead_gantry",
+          "zoom_level": "optimal_medium",
+          "resolution": "1080p",
+          "fps": 30
+        }
+      ]
+    },
+    "madrid": {
+      "id": "madrid",
+      "feed_id": 404,
+      "name": "Madrid",
+      "country": "Spain",
+      "country_code": "ES",
+      "flag_emoji": "🇪🇸",
+      "region": "Europe",
+      "timezone": "Europe/Madrid",
+      "coordinates": { "lat": 40.4168, "long": -3.7038 },
+      "corridor": "M-30 Ring Motorway & Gran Vía Arterial",
+      "fallback_video": "/static/fallback_videos/madrid.mp4",
+      "sources": [
+        {
+          "source_id": "madrid_yt_1",
+          "provider": "youtube",
+          "priority": 1,
+          "title": "Madrid Gran Vía & Calle 30 Motorway Live Traffic Cam",
+          "url": "https://www.youtube.com/watch?v=5JF-2csxmFs",
+          "video_id": "5JF-2csxmFs",
+          "angle": "elevated_highway",
+          "zoom_level": "optimal_medium",
+          "resolution": "1080p",
+          "fps": 30
+        },
+        {
+          "source_id": "madrid_traffic_2",
+          "provider": "traffic_cam",
+          "priority": 2,
+          "title": "DGT Madrid M-30 Paseo de la Castellana Overpass",
+          "url": "https://stream.rushhourbet.io/europe/madrid_m30.m3u8",
+          "angle": "overhead_gantry",
+          "zoom_level": "optimal_medium",
+          "resolution": "720p",
+          "fps": 25
+        }
+      ]
+    },
+    "rome": {
+      "id": "rome",
+      "feed_id": 405,
+      "name": "Rome",
+      "country": "Italy",
+      "country_code": "IT",
+      "flag_emoji": "🇮🇹",
+      "region": "Europe",
+      "timezone": "Europe/Rome",
+      "coordinates": { "lat": 41.9028, "long": 12.4964 },
+      "corridor": "Grande Raccordo Anulare (A90) & Piazza Venezia",
+      "fallback_video": "/static/fallback_videos/rome.mp4",
+      "sources": [
+        {
+          "source_id": "rome_yt_1",
+          "provider": "youtube",
+          "priority": 1,
+          "title": "Rome Piazza Venezia & Via dei Fori Imperiali Traffic Cam",
+          "url": "https://www.youtube.com/watch?v=bietemdE8LU",
+          "video_id": "bietemdE8LU",
+          "angle": "elevated_highway",
+          "zoom_level": "optimal_medium",
+          "resolution": "1080p",
+          "fps": 30
+        },
+        {
+          "source_id": "rome_traffic_2",
+          "provider": "traffic_cam",
+          "priority": 2,
+          "title": "ANAS Roma Grande Raccordo Anulare A90",
+          "url": "https://stream.rushhourbet.io/europe/rome_a90.m3u8",
+          "angle": "overhead_gantry",
+          "zoom_level": "optimal_medium",
+          "resolution": "720p",
+          "fps": 25
+        }
+      ]
+    },
+    "amsterdam": {
+      "id": "amsterdam",
+      "feed_id": 3,
+      "name": "Amsterdam",
+      "country": "Netherlands",
+      "country_code": "NL",
+      "flag_emoji": "🇳🇱",
+      "region": "Europe",
+      "timezone": "Europe/Amsterdam",
+      "coordinates": { "lat": 52.3676, "long": 4.9041 },
+      "corridor": "Rijkswaterstaat A10 Ring Road & A1 Hoevelaken",
+      "fallback_video": "/static/fallback_videos/amsterdam.mp4",
+      "sources": [
+        {
+          "source_id": "amsterdam_rws_1",
+          "provider": "traffic_cam",
+          "priority": 1,
+          "title": "Rijkswaterstaat A10 Ring / A1 Hoevelaken Overpass",
+          "url": "https://stream.inmoves.nl/rtplive/IB_55.stream/playlist.m3u8",
+          "angle": "overhead_gantry",
+          "zoom_level": "optimal_medium",
+          "resolution": "1080p",
+          "fps": 30
+        },
+        {
+          "source_id": "amsterdam_yt_2",
+          "provider": "youtube",
+          "priority": 2,
+          "title": "Amsterdam A10 Ring Highway & Central Arterial Live",
+          "url": "https://www.youtube.com/watch?v=Gd9d4q6WvUY",
+          "video_id": "Gd9d4q6WvUY",
+          "angle": "elevated_highway",
+          "zoom_level": "optimal_medium",
+          "resolution": "1080p",
+          "fps": 30
+        }
+      ]
+    },
+    "vienna": {
+      "id": "vienna",
+      "feed_id": 407,
+      "name": "Vienna",
+      "country": "Austria",
+      "country_code": "AT",
+      "flag_emoji": "🇦🇹",
+      "region": "Europe",
+      "timezone": "Europe/Vienna",
+      "coordinates": { "lat": 48.2082, "long": 16.3738 },
+      "corridor": "A23 Südosttangente & Ringstraße Boulevard",
+      "fallback_video": "/static/fallback_videos/vienna.mp4",
+      "sources": [
+        {
+          "source_id": "vienna_yt_1",
+          "provider": "youtube",
+          "priority": 1,
+          "title": "Vienna Ringstraße Boulevard & A23 Highway Traffic Cam",
+          "url": "https://www.youtube.com/watch?v=BFlsMnd_MFQ",
+          "video_id": "BFlsMnd_MFQ",
+          "angle": "elevated_highway",
+          "zoom_level": "optimal_medium",
+          "resolution": "1080p",
+          "fps": 30
+        },
+        {
+          "source_id": "vienna_traffic_2",
+          "provider": "traffic_cam",
+          "priority": 2,
+          "title": "ASFINAG Wien A23 Praterbrücke Gantry Cam",
+          "url": "https://stream.rushhourbet.io/europe/vienna_a23.m3u8",
+          "angle": "overhead_gantry",
+          "zoom_level": "optimal_medium",
+          "resolution": "1080p",
+          "fps": 30
+        }
+      ]
+    },
+    "prague": {
+      "id": "prague",
+      "feed_id": 408,
+      "name": "Prague",
+      "country": "Czech Republic",
+      "country_code": "CZ",
+      "flag_emoji": "🇨🇿",
+      "region": "Europe",
+      "timezone": "Europe/Prague",
+      "coordinates": { "lat": 50.0755, "long": 14.4378 },
+      "corridor": "Magistrála Wilsonova & V Holešovičkách Arterial",
+      "fallback_video": "/static/fallback_videos/prague.mp4",
+      "sources": [
+        {
+          "source_id": "prague_yt_1",
+          "provider": "youtube",
+          "priority": 1,
+          "title": "Prague V Holešovičkách & Wilsonova Highway Traffic Cam",
+          "url": "https://www.youtube.com/watch?v=Zf1z8h-yD9o",
+          "video_id": "Zf1z8h-yD9o",
+          "angle": "elevated_highway",
+          "zoom_level": "optimal_medium",
+          "resolution": "1080p",
+          "fps": 30
+        },
+        {
+          "source_id": "prague_traffic_2",
+          "provider": "traffic_cam",
+          "priority": 2,
+          "title": "TSK Praha Jižní Spojka Ring Expressway",
+          "url": "https://stream.rushhourbet.io/europe/prague_magistrala.m3u8",
+          "angle": "overhead_gantry",
+          "zoom_level": "optimal_medium",
+          "resolution": "720p",
+          "fps": 25
+        }
+      ]
+    },
+    "zurich": {
+      "id": "zurich",
+      "feed_id": 409,
+      "name": "Zurich",
+      "country": "Switzerland",
+      "country_code": "CH",
+      "flag_emoji": "🇨🇭",
+      "region": "Europe",
+      "timezone": "Europe/Zurich",
+      "coordinates": { "lat": 47.3769, "long": 8.5417 },
+      "corridor": "A1 Gubrist Nordring & Hardbrücke Viaduct",
+      "fallback_video": "/static/fallback_videos/zurich.mp4",
+      "sources": [
+        {
+          "source_id": "zurich_yt_1",
+          "provider": "youtube",
+          "priority": 1,
+          "title": "Zurich Hardbrücke Viaduct & A1 Highway Traffic Cam",
+          "url": "https://www.youtube.com/watch?v=enYFXf8u7Lc",
+          "video_id": "enYFXf8u7Lc",
+          "angle": "elevated_highway",
+          "zoom_level": "optimal_medium",
+          "resolution": "1080p",
+          "fps": 30
+        },
+        {
+          "source_id": "zurich_traffic_2",
+          "provider": "traffic_cam",
+          "priority": 2,
+          "title": "ASTRA Zurich A1 Limmattaler Kreuz Gantry",
+          "url": "https://stream.rushhourbet.io/europe/zurich_a1.m3u8",
+          "angle": "overhead_gantry",
+          "zoom_level": "optimal_medium",
+          "resolution": "1080p",
+          "fps": 30
+        }
+      ]
+    },
+    "sydney": {
+      "id": "sydney",
+      "feed_id": 501,
+      "name": "Sydney",
+      "country": "Australia",
+      "country_code": "AU",
+      "flag_emoji": "🇦🇺",
+      "region": "Oceania",
+      "timezone": "Australia/Sydney",
+      "coordinates": { "lat": -33.8688, "long": 151.2093 },
+      "corridor": "Sydney Harbour Bridge & Warringah Freeway",
+      "fallback_video": "/static/fallback_videos/sydney.mp4",
+      "sources": [
+        {
+          "source_id": "sydney_yt_1",
+          "provider": "youtube",
+          "priority": 1,
+          "title": "Sydney Harbour Bridge & Cahill Expressway Live Traffic Cam",
+          "url": "https://www.youtube.com/watch?v=5uZa3-RMFos",
+          "video_id": "5uZa3-RMFos",
+          "angle": "bridge_overpass",
+          "zoom_level": "optimal_medium",
+          "resolution": "1080p",
+          "fps": 30
+        },
+        {
+          "source_id": "sydney_traffic_2",
+          "provider": "traffic_cam",
+          "priority": 2,
+          "title": "Transport for NSW Warringah Freeway Miller St Overpass",
+          "url": "https://stream.rushhourbet.io/oceania/sydney_harbour_bridge.m3u8",
+          "angle": "overhead_gantry",
+          "zoom_level": "optimal_medium",
+          "resolution": "1080p",
+          "fps": 30
+        }
+      ]
+    },
+    "melbourne": {
+      "id": "melbourne",
+      "feed_id": 502,
+      "name": "Melbourne",
+      "country": "Australia",
+      "country_code": "AU",
+      "flag_emoji": "🇦🇺",
+      "region": "Oceania",
+      "timezone": "Australia/Melbourne",
+      "coordinates": { "lat": -37.8136, "long": 144.9631 },
+      "corridor": "West Gate Freeway (M1) & Bolte Bridge",
+      "fallback_video": "/static/fallback_videos/melbourne.mp4",
+      "sources": [
+        {
+          "source_id": "melbourne_yt_1",
+          "provider": "youtube",
+          "priority": 1,
+          "title": "Melbourne West Gate Freeway M1 & CityLink Traffic Cam",
+          "url": "https://www.youtube.com/watch?v=7K4M9P2T1X6",
+          "video_id": "7K4M9P2T1X6",
+          "angle": "elevated_highway",
+          "zoom_level": "optimal_medium",
+          "resolution": "1080p",
+          "fps": 30
+        },
+        {
+          "source_id": "melbourne_traffic_2",
+          "provider": "traffic_cam",
+          "priority": 2,
+          "title": "VicRoads M1 Monash Freeway High St Overpass",
+          "url": "https://stream.rushhourbet.io/oceania/melbourne_m1.m3u8",
+          "angle": "overhead_gantry",
+          "zoom_level": "optimal_medium",
+          "resolution": "1080p",
+          "fps": 30
+        }
+      ]
+    },
+    "auckland": {
+      "id": "auckland",
+      "feed_id": 503,
+      "name": "Auckland",
+      "country": "New Zealand",
+      "country_code": "NZ",
+      "flag_emoji": "🇳🇿",
+      "region": "Oceania",
+      "timezone": "Pacific/Auckland",
+      "coordinates": { "lat": -36.8485, "long": 174.7633 },
+      "corridor": "Auckland Harbour Bridge (SH1) & Central Motorway Junction",
+      "fallback_video": "/static/fallback_videos/auckland.mp4",
+      "sources": [
+        {
+          "source_id": "auckland_yt_1",
+          "provider": "youtube",
+          "priority": 1,
+          "title": "Auckland NZTA State Highway 1 Harbour Bridge Traffic Cam",
+          "url": "https://www.youtube.com/watch?v=9P2K4M7T1W8",
+          "video_id": "9P2K4M7T1W8",
+          "angle": "bridge_overpass",
+          "zoom_level": "optimal_medium",
+          "resolution": "1080p",
+          "fps": 30
+        },
+        {
+          "source_id": "auckland_traffic_2",
+          "provider": "traffic_cam",
+          "priority": 2,
+          "title": "Waka Kotahi NZTA SH1 Spaghetti Junction Gantry",
+          "url": "https://stream.rushhourbet.io/oceania/auckland_sh1.m3u8",
+          "angle": "overhead_gantry",
+          "zoom_level": "optimal_medium",
+          "resolution": "1080p",
+          "fps": 30
+        }
+      ]
+    }
+  }
+}

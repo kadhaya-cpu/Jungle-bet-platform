@@ -53,7 +53,7 @@ export const Register: React.FC = () => {
     onSuccess: ({ token, refreshToken, user }) => {
       storeLogin(user, token, refreshToken);
       setBalance(user.balance_usd, user.preferred_currency);
-      toast.success(`Account created! Welcome to Jungle Bet, ${user.username}!`);
+      toast.success(`Account created! Welcome to RUSH HOUR BET, ${user.username}!`);
       navigate('/wallet', { replace: true });
     },
     onError: (err: unknown) => {

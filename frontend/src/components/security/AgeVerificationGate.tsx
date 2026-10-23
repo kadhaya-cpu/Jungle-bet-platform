@@ -122,7 +122,7 @@ export const AgeVerificationGate: React.FC<AgeVerificationGateProps> = ({
               Access Blocked: Underage Protection
             </h1>
             <p className="text-sm text-red-400 font-semibold leading-relaxed">
-              You must be 18 years of age or older to enter Jungle Bet. Underage wagering is strictly prohibited by law and platform security policy.
+              You must be 18 years of age or older to enter RUSH HOUR BET. Underage wagering is strictly prohibited by law and platform security policy.
             </p>
           </div>
 
@@ -200,7 +200,7 @@ export const AgeVerificationGate: React.FC<AgeVerificationGateProps> = ({
           <div className="rounded-xl bg-red-950/40 border border-red-500/40 p-3.5 text-left">
             <p className="text-xs text-red-300 font-medium leading-relaxed">
               <strong className="text-red-400 uppercase">Legal & Financial Risk Warning:</strong>{' '}
-              It is illegal for anyone under the age of 18 to open an account or gamble on Jungle Bet. Wagering carries a high risk of financial loss.
+              It is illegal for anyone under the age of 18 to open an account or gamble on RUSH HOUR BET. Wagering carries a high risk of financial loss.
             </p>
           </div>
 

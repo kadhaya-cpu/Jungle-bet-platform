@@ -1,9 +1,9 @@
 import React, { useMemo, useState } from 'react';
 import { ComposableMap, Geographies, Geography, ZoomableGroup } from 'react-simple-maps';
 import { geoMercator } from 'd3-geo';
-import { MapPin, Compass, Radio, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
+import { MapPin, Compass, Radio, ZoomIn, ZoomOut, RotateCcw, Globe } from 'lucide-react';
 import { CameraFeedGame, useBettingStore } from '../../store/useBettingStore';
-import { EUROPE_CITIES, CityData } from '../../utils/cityData';
+import { GLOBAL_CITIES, CityData, GlobalRegion } from '../../utils/cityData';
 import { CityPin, CityPinData } from './CityPin';
 
 const GEO_URL = '/world-110m.json';
@@ -14,10 +14,18 @@ export interface InteractiveEuropeMapProps {
   onSelectCity?: (city: CityData) => void;
 }
 
+const REGION_VIEW_CONFIG: Record<string, { center: [number, number]; scale: number }> = {
+  All: { center: [15, 20], scale: 145 },
+  Europe: { center: [8, 49.5], scale: 680 },
+  Asia: { center: [105, 22], scale: 280 },
+  Africa: { center: [18, 2], scale: 260 },
+  Americas: { center: [-78, 12], scale: 185 },
+  Oceania: { center: [155, -32], scale: 420 },
+};
+
 /**
- * Interactive Europe Map powered by react-simple-maps + d3-geo
- * Renders clickable gold pins across 8 major European cities:
- * London, Paris, Berlin, Rome, Amsterdam, Madrid, Vienna, Prague
+ * Interactive Global Traffic Map powered by react-simple-maps + d3-geo
+ * Renders clickable gold pins across 28+ worldwide cities in Asia, Africa, Americas, Europe, and Oceania.
  */
 export const InteractiveEuropeMap: React.FC<InteractiveEuropeMapProps> = ({
   feeds = [],
@@ -28,21 +36,28 @@ export const InteractiveEuropeMap: React.FC<InteractiveEuropeMapProps> = ({
     useBettingStore();
 
   const [hoveredCity, setHoveredCity] = useState<CityData | null>(null);
+  const [activeRegion, setActiveRegion] = useState<'All' | GlobalRegion>('All');
   const [zoom, setZoom] = useState<number>(1);
-  const [center, setCenter] = useState<[number, number]>([8, 49.5]);
+  const [center, setCenter] = useState<[number, number]>(REGION_VIEW_CONFIG.All.center);
 
   const projectionConfig = useMemo(() => {
-    const proj = geoMercator().center([8, 49.5]).scale(680);
+    const view = REGION_VIEW_CONFIG[activeRegion] || REGION_VIEW_CONFIG.All;
+    const proj = geoMercator().center(view.center).scale(view.scale);
     return {
       center: proj.center() as [number, number],
       scale: proj.scale(),
     };
-  }, []);
+  }, [activeRegion]);
 
   const gameList = feeds.length > 0 ? feeds : activeGames;
 
+  const filteredCities = useMemo(() => {
+    if (activeRegion === 'All') return GLOBAL_CITIES;
+    return GLOBAL_CITIES.filter((c) => c.region === activeRegion);
+  }, [activeRegion]);
+
   const pins = useMemo(() => {
-    return EUROPE_CITIES.map((city) => {
+    return filteredCities.map((city) => {
       const matchedGame = gameList.find(
         (g) =>
           g.cityId === city.id ||
@@ -63,7 +78,14 @@ export const InteractiveEuropeMap: React.FC<InteractiveEuropeMapProps> = ({
       };
       return { city, pinData };
     });
-  }, [gameList]);
+  }, [filteredCities, gameList]);
+
+  const handleRegionChange = (region: 'All' | GlobalRegion) => {
+    setActiveRegion(region);
+    const view = REGION_VIEW_CONFIG[region] || REGION_VIEW_CONFIG.All;
+    setCenter(view.center);
+    setZoom(1);
+  };
 
   const handleCitySelection = (city: CityData, feedId: number) => {
     selectCity(city);
@@ -79,13 +101,27 @@ export const InteractiveEuropeMap: React.FC<InteractiveEuropeMapProps> = ({
         <div className="flex items-center gap-2">
           <Compass className="w-4 h-4 text-[#FFD700]" />
           <h3 className="text-sm font-extrabold text-white tracking-tight">
-            Interactive Europe Live Traffic Map
+            RUSH HOUR BET Global Live Traffic Map
           </h3>
         </div>
-        <div className="flex items-center gap-2 text-xs text-gray-400">
+        <div className="flex flex-wrap items-center gap-1.5 text-xs">
+          {(['All', 'Asia', 'Africa', 'Americas', 'Europe', 'Oceania'] as const).map((reg) => (
+            <button
+              key={reg}
+              type="button"
+              onClick={() => handleRegionChange(reg)}
+              className={`px-2.5 py-1 rounded-full font-bold transition-all ${
+                activeRegion === reg
+                  ? 'bg-[#FFD700] text-[#0f0f0f]'
+                  : 'bg-white/5 text-gray-300 hover:bg-white/10'
+              }`}
+            >
+              {reg === 'All' ? '🌍 World' : reg}
+            </button>
+          ))}
           <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-bold">
             <Radio className="w-3 h-3 animate-pulse" />
-            {EUROPE_CITIES.length} European Hubs
+            {filteredCities.length} Global Hubs
           </span>
         </div>
       </div>
@@ -116,8 +152,9 @@ export const InteractiveEuropeMap: React.FC<InteractiveEuropeMapProps> = ({
           <button
             type="button"
             onClick={() => {
+              const view = REGION_VIEW_CONFIG[activeRegion] || REGION_VIEW_CONFIG.All;
               setZoom(1);
-              setCenter([8, 49.5]);
+              setCenter(view.center);
             }}
             title="Reset map view"
             className="p-2 rounded-xl bg-[#1a1a1a]/90 hover:bg-[#252525] text-gray-200 hover:text-[#FFD700] border border-white/10 transition-colors shadow-lg"
@@ -134,9 +171,11 @@ export const InteractiveEuropeMap: React.FC<InteractiveEuropeMapProps> = ({
                 <span className="text-base">{hoveredCity.flagEmoji}</span>
                 <div>
                   <div className="text-xs font-extrabold text-white">
-                    {hoveredCity.name}, <span className="text-[#FFD700]">{hoveredCity.country}</span>
+                    {hoveredCity.name}, <span className="text-[#FFD700]">{hoveredCity.country}</span> ({hoveredCity.countryCode})
                   </div>
-                  <div className="text-[10px] text-gray-400">{hoveredCity.corridorName}</div>
+                  <div className="text-[10px] text-gray-400">
+                    {hoveredCity.corridorName} • {hoveredCity.timezone}
+                  </div>
                 </div>
               </div>
             </div>
@@ -147,9 +186,10 @@ export const InteractiveEuropeMap: React.FC<InteractiveEuropeMapProps> = ({
                 <div>
                   <div className="text-xs font-bold text-white">
                     Selected: <span className="text-[#FFD700]">{selectedCity.name}</span> (
-                    {selectedCity.country})
+                    {selectedCity.country}) • {selectedCity.timezone || 'UTC'}
                   </div>
-                  <div className="text-[10px] text-gray-400">
+                  <div className="text-[10px] text-gray-400 flex items-center gap-1">
+                    <Globe className="w-3 h-3 text-[#FFD700]" />
                     Click any gold pin to switch live camera stream
                   </div>
                 </div>
@@ -206,10 +246,10 @@ export const InteractiveEuropeMap: React.FC<InteractiveEuropeMapProps> = ({
         </ComposableMap>
 
         {/* Bottom Quick-Select City Pills Bar */}
-        <div className="absolute bottom-3 left-3 right-3 bg-[#141414]/90 backdrop-blur-md border border-white/10 rounded-xl px-3 py-2 flex flex-wrap items-center justify-between gap-2 text-xs">
+        <div className="absolute bottom-3 left-3 right-3 bg-[#141414]/90 backdrop-blur-md border border-white/10 rounded-xl px-3 py-2 flex flex-wrap items-center justify-between gap-2 text-xs max-h-24 overflow-y-auto">
           <div className="flex items-center gap-1.5 text-gray-300 font-semibold">
             <MapPin className="w-3.5 h-3.5 text-[#FFD700] shrink-0" />
-            <span className="hidden sm:inline">Cities:</span>
+            <span className="hidden sm:inline">Global Hubs:</span>
           </div>
           <div className="flex flex-wrap items-center gap-1.5">
             {pins.map(({ city, pinData }) => {

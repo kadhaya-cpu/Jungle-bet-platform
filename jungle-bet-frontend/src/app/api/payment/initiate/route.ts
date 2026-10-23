@@ -71,7 +71,7 @@ export async function POST(req: NextRequest) {
     const userProfile = authUserService.findUserById(userId);
     if (userProfile?.isBanned) {
       return NextResponse.json(
-        { error: "This account has been banned by Jungle Bet Security & Fraud Prevention." },
+        { error: "This account has been banned by RUSH HOUR BET Security & Fraud Prevention." },
         { status: 403 }
       );
     }

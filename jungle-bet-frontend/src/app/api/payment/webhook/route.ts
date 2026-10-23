@@ -157,7 +157,7 @@ export async function GET(req: NextRequest) {
   const provider = req.nextUrl.searchParams.get("provider") || "all";
   return NextResponse.json({
     status: "active",
-    message: "Jungle Bet Multi-Country Payment Webhook Gateway is healthy.",
+    message: "RUSH HOUR BET Multi-Country Payment Webhook Gateway is healthy.",
     provider,
     timestamp: new Date().toISOString(),
   });

@@ -217,7 +217,7 @@ export const WithdrawForm: React.FC = () => {
 
       <p className="text-[11px] text-gray-500 flex items-center justify-center gap-1.5">
         <Shield className="w-3.5 h-3.5 text-[#FFD700]" />
-        Audited by Jungle Bet Treasury Compliance Engine
+        Audited by RUSH HOUR BET Treasury Compliance Engine
       </p>
     </form>
   );

@@ -112,7 +112,7 @@ active_streams = []
 
 @app.get("/events/stream")
 async def stream_events(request: Request):
-   """Server-Sent Events endpoint for Jungle Bet Live Feed."""
+   """Server-Sent Events endpoint for RUSH HOUR BET Live Feed."""
    q = asyncio.Queue()
    active_streams.append(q)
 

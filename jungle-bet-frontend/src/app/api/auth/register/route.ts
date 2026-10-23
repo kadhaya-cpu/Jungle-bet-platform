@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(
       {
-        message: "Account created successfully! Welcome to Jungle Bet.",
+        message: "Account created successfully! Welcome to RUSH HOUR BET.",
         user: {
           id: newUser.id,
           name: newUser.name,

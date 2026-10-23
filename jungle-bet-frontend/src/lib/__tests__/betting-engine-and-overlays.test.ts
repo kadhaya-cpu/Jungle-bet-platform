@@ -14,7 +14,7 @@ import assert from "node:assert";
 import { calculateDynamicOdds, PRESET_MARKETS } from "../../components/StickyBettingPanel";
 
 console.log("\n=======================================================");
-console.log("🏎️ JUNGLE BET BETTING ENGINE & RESULT VISUALS TEST SUITE");
+console.log("🏎️ RUSH HOUR BET BETTING ENGINE & RESULT VISUALS TEST SUITE");
 console.log("=======================================================\n");
 
 // --- 1. Testing Two Parameters: Duration (7s to 15s) and Prediction ---

@@ -1,5 +1,5 @@
 /**
- * transaction-service.ts - Jungle Bet TypeScript Financial Core Client & Service
+ * transaction-service.ts - RUSH HOUR BET TypeScript Financial Core Client & Service
  * 
  * Interacts with PostgreSQL or backend financial core for:
  * - Wallet segregation (PLAYER, HOUSE_REVENUE)

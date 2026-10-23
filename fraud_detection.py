@@ -10,14 +10,18 @@ from starlette.responses import Response, JSONResponse
 from sqlalchemy import select, update as sqlalchemy_update, desc
 from jose import jwt, JWTError
 
+import os
+from dotenv import load_dotenv
 import models
 from database import AsyncSessionLocal
+
+load_dotenv()
 
 logger = logging.getLogger("fraud_detector")
 logging.basicConfig(level=logging.INFO)
 
-SECRET_KEY = "your-secret-key-change-in-production"
-ALGORITHM = "HS256"
+SECRET_KEY = os.getenv("SECRET_KEY") or os.getenv("JWT_SECRET_KEY") or os.getenv("NEXTAUTH_SECRET") or ""
+ALGORITHM = os.getenv("JWT_ALGORITHM") or "HS256"
 
 
 class BetLogItem:
@@ -29,7 +33,7 @@ class BetLogItem:
 
 class FraudDetectionService:
     """
-    Central Fraud Detection Engine for Jungle Bet.
+    Central Fraud Detection Engine for RUSH HOUR BET.
     Rules:
       1. Trigger flag when a user places more than 10 bets per minute (>10 bets in 60s window).
       2. Trigger flag when a user wins over 1,000 (1000.0) instantly.
@@ -341,7 +345,7 @@ class FraudDetectionMiddleware(BaseHTTPMiddleware):
                             return JSONResponse(
                                 status_code=403,
                                 content={
-                                    "detail": "This account has been banned by Jungle Bet Security & Fraud Prevention.",
+                                    "detail": "This account has been banned by RUSH HOUR BET Security & Fraud Prevention.",
                                     "isBanned": True,
                                 },
                             )

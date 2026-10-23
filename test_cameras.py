@@ -1,5 +1,5 @@
 """
-test_cameras.py - Verification Script for Jungle Bet Camera Streams
+test_cameras.py - Verification Script for RUSH HOUR BET Camera Streams
 
 Iterates through the registered traffic camera feeds, attempts to open each
 stream with OpenCV, captures 10 frames, and verifies stream connectivity and lane visibility.
@@ -158,7 +158,7 @@ def verify_camera(feed: Dict[str, Any], target_frames: int = 10) -> bool:
 
 def main():
     print("==================================================")
-    print("   JUNGLE BET CAMERA STREAM VERIFICATION SUITE    ")
+    print("   RUSH HOUR BET CAMERA STREAM VERIFICATION SUITE    ")
     print("==================================================")
 
     feeds = load_feeds_from_db()

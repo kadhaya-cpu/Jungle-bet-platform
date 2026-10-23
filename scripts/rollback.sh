@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# Jungle Bet - Instant Emergency Rollback Utility
+# RUSH HOUR BET - Instant Emergency Rollback Utility
 # ==============================================================================
 
 set -euo pipefail
@@ -19,7 +19,7 @@ CYAN='\033[0;36m'
 NC='\033[0m'
 
 echo -e "${RED}====================================================================${NC}"
-echo -e "${RED} Jungle Bet: Emergency Rollback Triggered${NC}"
+echo -e "${RED} RUSH HOUR BET: Emergency Rollback Triggered${NC}"
 echo -e "${RED}====================================================================${NC}"
 
 CURRENT_ENV="blue"

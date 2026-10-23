@@ -19,7 +19,7 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: "Jungle Bet | High Octane Live Racing & Wagering",
+  title: "RUSH HOUR BET | High Octane Live Racing & Wagering",
   description: "Experience high-speed live street racing odds with Jungle Green neon energy and instant NextAuth authentication.",
 };
 

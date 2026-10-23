@@ -1,12 +1,13 @@
 """
-transaction_service.py - Jungle Bet Strict Financial Core & Money Movement Engine
+transaction_service.py - RUSH HOUR BET Strict Financial Core & Money Movement Engine
 
 Rules:
 1. Strict segregation of PLAYER and HOUSE_REVENUE wallets.
-2. NO direct SQL balance updates allowed; all operations set session context 'junglebet.transaction_service = active'.
-3. Complete double-entry ledger in 'transactions' table (source_wallet_id, dest_wallet_id, amount, status).
-4. processBet implementation: locks stake, resolves loss to HOUSE_REVENUE, resolves win from HOUSE_REVENUE to PLAYER.
-5. daily_settlement job calculating net profit and preparing external operator bank transfer.
+2. USD-ONLY internal accounting: All wallet balances are stored strictly in USD.
+3. NO direct SQL balance updates allowed; all operations set session context 'junglebet.transaction_service = active'.
+4. Complete double-entry ledger in 'transactions' table (source_wallet_id, dest_wallet_id, amount, status).
+5. processBet implementation: locks stake, resolves loss to HOUSE_REVENUE, resolves win from HOUSE_REVENUE to PLAYER.
+6. daily_settlement job calculating net profit and preparing external operator bank transfer.
 """
 
 import os
@@ -23,7 +24,11 @@ from notifications import notification_service
 logger = logging.getLogger("transaction_service")
 logger.setLevel(logging.INFO)
 
-OPERATOR_BANK_DEFAULT = os.getenv("OPERATOR_BANK_ACCOUNT", "Stanbic Bank - IBAN GB29JUNGLE8839210")
+INTERNAL_ACCOUNTING_CURRENCY = "USD"
+OPERATOR_BANK_DEFAULT = (
+    os.getenv("RUSH_HOUR_BET_OPERATOR_BANK_ACCOUNT")
+    or os.getenv("OPERATOR_BANK_ACCOUNT", "Stanbic Bank - IBAN GB29JUNGLE8839210")
+)
 MIN_SAFETY_FLOAT_RATIO: float = 0.25
 MIN_SAFETY_FLOAT_PERCENTAGE: float = MIN_SAFETY_FLOAT_RATIO
 
@@ -35,6 +40,76 @@ class ComplianceViolationError(Exception):
 
 class TransactionService:
     @staticmethod
+    def validate_usd_currency(currency: Optional[str] = "USD") -> str:
+        """Enforce USD-only internal wallet accounting across all wallet operations."""
+        normalized = (currency or "USD").strip().upper()
+        if normalized != INTERNAL_ACCOUNTING_CURRENCY:
+            raise ValueError(
+                f"USD_ONLY_ACCOUNTING_VIOLATION: Wallet currency must be '{INTERNAL_ACCOUNTING_CURRENCY}' "
+                f"(received '{currency}'). Local currencies must be converted to USD before wallet accounting."
+            )
+        return INTERNAL_ACCOUNTING_CURRENCY
+
+    @staticmethod
+    def convert_local_to_usd(
+        amount_local: float,
+        market_rate: float,
+        custom_rate: Optional[float] = None,
+    ) -> Dict[str, float]:
+        """
+        Convert a local currency deposit into USD for internal wallet accounting.
+        Applies FX spread capture when custom_rate < market_rate.
+        """
+        if amount_local <= 0:
+            raise ValueError("Deposit amount must be strictly greater than 0")
+        if market_rate <= 0:
+            raise ValueError("Market exchange rate must be strictly greater than 0")
+        effective_custom = float(custom_rate) if (custom_rate is not None and custom_rate > 0) else float(market_rate)
+        spread_diff = max(0.0, float(market_rate) - effective_custom)
+        real_usd = float(amount_local) / float(market_rate)
+        user_credit_usd = (float(amount_local) / float(market_rate)) * (effective_custom / float(market_rate))
+        spread_profit_kept = max(0.0, real_usd - user_credit_usd)
+        return {
+            "amount_local": round(float(amount_local), 4),
+            "market_rate": float(market_rate),
+            "custom_rate": effective_custom,
+            "real_usd": round(real_usd, 6),
+            "usd_credited": round(user_credit_usd, 6),
+            "spread_profit_usd": round(spread_profit_kept, 6),
+            "currency_stored": INTERNAL_ACCOUNTING_CURRENCY,
+        }
+
+    @staticmethod
+    def convert_usd_to_local(
+        amount_usd: float,
+        market_rate: float,
+        custom_rate: Optional[float] = None,
+    ) -> Dict[str, float]:
+        """
+        Convert an internal USD balance withdrawal into local currency payout.
+        """
+        if amount_usd <= 0:
+            raise ValueError("Withdrawal USD amount must be strictly greater than 0")
+        if market_rate <= 0:
+            raise ValueError("Market exchange rate must be strictly greater than 0")
+        effective_custom = float(custom_rate) if (custom_rate is not None and custom_rate > 0) else float(market_rate)
+        local_payout = float(amount_usd) * effective_custom
+        market_equivalent = float(amount_usd) * float(market_rate)
+        spread_diff = max(0.0, float(market_rate) - effective_custom)
+        spread_profit_usd = float(amount_usd) * (spread_diff / float(market_rate)) if market_rate > 0 else 0.0
+        spread_profit_local = max(0.0, market_equivalent - local_payout)
+        return {
+            "amount_usd": round(float(amount_usd), 6),
+            "market_rate": float(market_rate),
+            "custom_rate": effective_custom,
+            "local_payout": round(local_payout, 2),
+            "market_local_equivalent": round(market_equivalent, 2),
+            "spread_profit_usd": round(spread_profit_usd, 6),
+            "spread_profit_local": round(spread_profit_local, 2),
+            "internal_currency": INTERNAL_ACCOUNTING_CURRENCY,
+        }
+
+    @staticmethod
     async def _authorize_session(session: AsyncSession):
         """Enable bypass trigger for strict transaction service update authorization."""
         await session.execute(text("SET LOCAL junglebet.transaction_service = 'active'"))
@@ -42,7 +117,8 @@ class TransactionService:
     async def get_or_create_player_wallet(
         self, session: AsyncSession, user_id: int, currency: str = "USD"
     ) -> models.Wallet:
-        """Fetch or initialize the user's segregated PLAYER wallet."""
+        """Fetch or initialize the user's segregated PLAYER wallet (strictly in USD)."""
+        validated_currency = self.validate_usd_currency(currency)
         res = await session.execute(
             select(models.Wallet).where(
                 and_(
@@ -53,28 +129,33 @@ class TransactionService:
         )
         wallet = res.scalars().first()
         if not wallet:
-            # Sync initial balance with user's v_coins if present
+            # Sync initial balance with user's balance_usd if present
             user_res = await session.execute(select(models.User).where(models.User.id == user_id))
             user = user_res.scalar_one_or_none()
-            init_balance = user.v_coins if user and user.v_coins is not None else 100.0
+            init_balance = user.balance_usd if user and user.balance_usd is not None else 100.0
 
             await self._authorize_session(session)
             wallet = models.Wallet(
                 user_id=user_id,
                 type=models.WalletType.PLAYER.value,
-                currency=currency,
+                currency=validated_currency,
                 balance=init_balance,
                 locked_balance=0.0,
                 status="active",
             )
             session.add(wallet)
             await session.flush()
+        elif wallet.currency != INTERNAL_ACCOUNTING_CURRENCY:
+            await self._authorize_session(session)
+            wallet.currency = INTERNAL_ACCOUNTING_CURRENCY
+            await session.flush()
         return wallet
 
     async def get_house_wallet(
         self, session: AsyncSession, currency: str = "USD"
     ) -> models.Wallet:
-        """Fetch or initialize the central HOUSE_REVENUE wallet."""
+        """Fetch or initialize the central HOUSE_REVENUE wallet (strictly in USD)."""
+        validated_currency = self.validate_usd_currency(currency)
         res = await session.execute(
             select(models.Wallet).where(
                 models.Wallet.type == models.WalletType.HOUSE_REVENUE.value
@@ -87,7 +168,7 @@ class TransactionService:
                 id=1,
                 user_id=None,
                 type=models.WalletType.HOUSE_REVENUE.value,
-                currency=currency,
+                currency=validated_currency,
                 balance=100000.0,
                 locked_balance=0.0,
                 status="active",
@@ -99,7 +180,8 @@ class TransactionService:
     async def get_operator_bank_wallet(
         self, session: AsyncSession, currency: str = "USD"
     ) -> models.Wallet:
-        """Fetch or initialize the external OPERATOR_BANK settlement wallet."""
+        """Fetch or initialize the external OPERATOR_BANK settlement wallet (strictly in USD)."""
+        validated_currency = self.validate_usd_currency(currency)
         res = await session.execute(
             select(models.Wallet).where(
                 models.Wallet.type == models.WalletType.OPERATOR_BANK.value
@@ -112,7 +194,7 @@ class TransactionService:
                 id=2,
                 user_id=None,
                 type=models.WalletType.OPERATOR_BANK.value,
-                currency=currency,
+                currency=validated_currency,
                 balance=0.0,
                 locked_balance=0.0,
                 status="active",

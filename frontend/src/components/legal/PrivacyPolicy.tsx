@@ -74,7 +74,7 @@ export const PrivacyPolicy: React.FC<PrivacyPolicyProps> = ({
         <AlertCircle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
         <p className="text-xs sm:text-sm text-red-300 leading-relaxed">
           <strong className="text-red-400 uppercase">Mandatory Age & Identity Verification (18+):</strong>{' '}
-          Jungle Bet strictly prohibits minors under 18 from registering or transacting. We perform automated and manual age verification checks on all accounts and retain encrypted audit records for regulatory compliance.
+          RUSH HOUR BET strictly prohibits minors under 18 from registering or transacting. We perform automated and manual age verification checks on all accounts and retain encrypted audit records for regulatory compliance.
         </p>
       </div>
 
@@ -91,7 +91,7 @@ export const PrivacyPolicy: React.FC<PrivacyPolicyProps> = ({
             1. Personal & Financial Information We Collect
           </h3>
           <p>
-            1.1. To provide real-time optical wagering, multi-currency wallet settlement, and anti-fraud security, Jungle Bet collects:
+            1.1. To provide real-time optical wagering, multi-currency wallet settlement, and anti-fraud security, RUSH HOUR BET collects:
           </p>
           <ul className="list-disc pl-5 space-y-1 text-gray-300">
             <li>
@@ -116,10 +116,10 @@ export const PrivacyPolicy: React.FC<PrivacyPolicyProps> = ({
             2.1. <strong>Primary Database & Encrypted Cloud Backups:</strong> Active account state, wallet balances, and optical betting history are stored in our encrypted PostgreSQL production cluster and Redis telemetry caches.
           </p>
           <p>
-            2.2. <strong>Google Drive Enterprise Integration:</strong> For regulatory auditability, disaster recovery, and KYC document archival, Jungle Bet utilizes an automated <strong>Google Drive API / Google Cloud Workspace integration</strong>. Encrypted daily settlement snapshots, KYC identity verification artifacts, and immutable treasury audit logs are synchronized to restricted, access-controlled Google Drive compliance vaults with AES-256 encryption at rest.
+            2.2. <strong>Google Drive Enterprise Integration:</strong> For regulatory auditability, disaster recovery, and KYC document archival, RUSH HOUR BET utilizes an automated <strong>Google Drive API / Google Cloud Workspace integration</strong>. Encrypted daily settlement snapshots, KYC identity verification artifacts, and immutable treasury audit logs are synchronized to restricted, access-controlled Google Drive compliance vaults with AES-256 encryption at rest.
           </p>
           <p className="text-xs text-gray-400">
-            2.3. Access to Google Drive compliance folders is strictly restricted to authorized Jungle Bet Compliance & Treasury Officers under multi-factor authentication (MFA) and zero-trust IAM policies.
+            2.3. Access to Google Drive compliance folders is strictly restricted to authorized RUSH HOUR BET Compliance & Treasury Officers under multi-factor authentication (MFA) and zero-trust IAM policies.
           </p>
         </section>
 
@@ -143,7 +143,7 @@ export const PrivacyPolicy: React.FC<PrivacyPolicyProps> = ({
             4. LocalStorage, Cookies & Session Security
           </h3>
           <p>
-            4.1. Jungle Bet uses browser <code>localStorage</code> and secure cookies to store your JWT authentication tokens, theme preferences, 18+ age verification status, legal compliance acceptance timestamps, and 30-minute inactivity session timeout trackers.
+            4.1. RUSH HOUR BET uses browser <code>localStorage</code> and secure cookies to store your JWT authentication tokens, theme preferences, 18+ age verification status, legal compliance acceptance timestamps, and 30-minute inactivity session timeout trackers.
           </p>
           <p>
             4.2. You may request access to, correction of, or statutory deletion of your personal data (subject to mandatory 5-year anti-money laundering and financial ledger retention laws) by contacting our Data Protection Officer via the Racer Profile portal.

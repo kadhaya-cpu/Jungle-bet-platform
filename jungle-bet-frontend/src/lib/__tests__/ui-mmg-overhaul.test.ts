@@ -5,7 +5,7 @@ import { COUNTRY_CODES, DEFAULT_COUNTRY_CODE } from "../country-codes";
 import { authUserService } from "../auth-user-service";
 
 console.log("\n=======================================================");
-console.log("🎨 JUNGLE BET FRONTEND UI/UX OVERHAUL (MMG) TEST SUITE");
+console.log("🎨 RUSH HOUR BET FRONTEND UI/UX OVERHAUL (MMG) TEST SUITE");
 console.log("=======================================================\n");
 
 // -------------------------------------------------------------------
@@ -45,7 +45,7 @@ assert(headerFile.includes("animate-jungle-marquee"), "Header must include marqu
 console.log("  ✅ PASS: Scrolling promo ticker bar configured with exact text: " + promoTickerText);
 
 // Stylish text logo check
-assert(headerFile.includes("JUNGLE BET"), "Header must contain text logo 'JUNGLE BET'");
+assert(headerFile.includes("RUSH HOUR BET"), "Header must contain text logo 'RUSH HOUR BET'");
 assert(
   headerFile.includes("from-blue-500") || headerFile.includes("from-blue-600"),
   "Header logo must use blue-to-green gradient scale"
@@ -54,7 +54,7 @@ assert(
   headerFile.includes("to-[#00e5b9]") || headerFile.includes("to-emerald"),
   "Header logo must transition to green/teal"
 );
-console.log("  ✅ PASS: Header text logo 'JUNGLE BET' features blue-to-green gradient scale");
+console.log("  ✅ PASS: Header text logo 'RUSH HOUR BET' features blue-to-green gradient scale");
 
 // -------------------------------------------------------------------
 // 3. AUTH PAGES REDESIGN (LOGIN, SIGNUP, FORGOT PASSWORD)
@@ -70,7 +70,7 @@ console.log("  ✅ PASS: Country code selector defaults to +256 (Uganda)");
 // Login page checks
 const loginPage = fs.readFileSync(path.join(process.cwd(), "src/app/login/page.tsx"), "utf-8");
 assert(loginPage.includes("bg-white"), "Login page must use centered white/light card");
-assert(loginPage.includes("JUNGLE BET"), "Login page must feature 'JUNGLE BET' logo");
+assert(loginPage.includes("RUSH HOUR BET"), "Login page must feature 'RUSH HOUR BET' logo");
 assert(loginPage.includes("CountryCodeSelector"), "Login page must include CountryCodeSelector");
 assert(!loginPage.includes("type=\"email\""), "Login page must not have email inputs");
 assert(loginPage.includes("Forgot Password?"), "Login page must have 'Forgot Password?' link");
@@ -82,7 +82,7 @@ console.log("  ✅ PASS: Login page matches MMG unified layout with phone-only &
 // Signup page checks
 const signupPage = fs.readFileSync(path.join(process.cwd(), "src/app/signup/page.tsx"), "utf-8");
 assert(signupPage.includes("bg-white"), "Signup page must use centered white/light card");
-assert(signupPage.includes("JUNGLE BET"), "Signup page must feature 'JUNGLE BET' logo");
+assert(signupPage.includes("RUSH HOUR BET"), "Signup page must feature 'RUSH HOUR BET' logo");
 assert(signupPage.includes("CountryCodeSelector"), "Signup page must include CountryCodeSelector");
 assert(!signupPage.includes("type=\"email\""), "Signup page must not have email inputs");
 assert(signupPage.includes("Get Started"), "Register button must be renamed to 'Get Started'");
@@ -92,7 +92,7 @@ console.log("  ✅ PASS: Signup page matches MMG unified layout, renamed to 'Get
 // Forgot Password page checks
 const forgotPasswordPage = fs.readFileSync(path.join(process.cwd(), "src/app/forgot-password/page.tsx"), "utf-8");
 assert(forgotPasswordPage.includes("bg-white"), "Forgot password page must use centered white/light card");
-assert(forgotPasswordPage.includes("JUNGLE BET"), "Forgot password page must feature 'JUNGLE BET' logo");
+assert(forgotPasswordPage.includes("RUSH HOUR BET"), "Forgot password page must feature 'RUSH HOUR BET' logo");
 assert(forgotPasswordPage.includes("CountryCodeSelector"), "Forgot password page must include CountryCodeSelector");
 assert(forgotPasswordPage.includes("verificationCode") || forgotPasswordPage.includes("Verification Code"), "Must include verification code step");
 assert(forgotPasswordPage.includes("/api/auth/reset-password"), "Must call reset password API");
@@ -128,7 +128,7 @@ console.log("\n--- 5. Testing Landing Page Content ---");
 const homePage = fs.readFileSync(path.join(process.cwd(), "src/app/page.tsx"), "utf-8");
 
 // Main logo check
-assert(homePage.includes("JUNGLE BET"), "Landing page must feature main logo 'JUNGLE BET'");
+assert(homePage.includes("RUSH HOUR BET"), "Landing page must feature main logo 'RUSH HOUR BET'");
 assert(
   homePage.includes("bg-gradient-to-r") && (homePage.includes("from-blue-500") || homePage.includes("from-blue-600")),
   "Landing page main logo must use blue-to-green gradient"

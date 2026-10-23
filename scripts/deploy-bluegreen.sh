@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# Jungle Bet - Production Blue/Green Deployment with Automatic Rollback
+# RUSH HOUR BET - Production Blue/Green Deployment with Automatic Rollback
 # ==============================================================================
 
 set -euo pipefail
@@ -21,7 +21,7 @@ STATE_FILE="$PROJECT_ROOT/nginx/active_color.state"
 UPSTREAM_CONF="$PROJECT_ROOT/nginx/active_upstream.conf"
 
 echo -e "${CYAN}====================================================================${NC}"
-echo -e "${CYAN} Jungle Bet: Production Blue/Green Deployment Orchestrator${NC}"
+echo -e "${CYAN} RUSH HOUR BET: Production Blue/Green Deployment Orchestrator${NC}"
 echo -e "${CYAN}====================================================================${NC}"
 
 # Detect Docker Compose command

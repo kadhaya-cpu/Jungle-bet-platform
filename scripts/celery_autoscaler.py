@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-celery_autoscaler.py - Horizontal Autoscaler for Jungle Bet Celery Workers
+celery_autoscaler.py - Horizontal Autoscaler for RUSH HOUR BET Celery Workers
 
 Monitors Celery queue depth in Redis. If queue depth exceeds 50, scales
 celery-worker to 5 replicas. Scales down to 1 replica when the queue depth
@@ -183,7 +183,7 @@ class CeleryAutoscaler:
     def run_loop(self):
         """Continuous monitoring loop."""
         logger.info("================================================================")
-        logger.info(f" Jungle Bet: Celery Horizontal Autoscaler Started")
+        logger.info(f" RUSH HOUR BET: Celery Horizontal Autoscaler Started")
         logger.info(f" Target Service:         {self.SERVICE_NAME}")
         logger.info(f" Queue Name:             {self.queue_name}")
         logger.info(f" Scale-up Threshold:     Queue Depth > {self.threshold} -> {self.max_replicas} Replicas")

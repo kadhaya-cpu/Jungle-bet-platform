@@ -21,7 +21,7 @@ import { Button } from '../components/common/Button';
 import { Loader } from '../components/common/Loader';
 
 /**
- * Jungle Bet Arena Home Page — Live Optical Feed Showcase, Interactive Europe Map & Featured Markets
+ * RUSH HOUR BET Arena Home Page — Live Optical Feed Showcase, Interactive Europe Map & Featured Markets
  */
 export const Home: React.FC = () => {
   const navigate = useNavigate();

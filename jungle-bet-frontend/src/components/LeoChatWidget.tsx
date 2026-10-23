@@ -74,7 +74,7 @@ const INITIAL_MESSAGES: ChatMessage[] = [
   {
     id: "welcome-1",
     sender: "leo",
-    text: "🦁 **Greetings, Racer! I'm Leo**, your Jungle Bet AI assistant connected via real-time WebSocket stream.\n\nI analyze live camera feeds, optical YOLOv8 vehicle detections, Green Line crossing telemetry, and active odds in real-time.\n\nHow can I help you win today?",
+    text: "🦁 **Greetings, Racer! I'm Leo**, your RUSH HOUR BET AI assistant connected via real-time WebSocket stream.\n\nI analyze live camera feeds, optical YOLOv8 vehicle detections, Green Line crossing telemetry, and active odds in real-time.\n\nHow can I help you win today?",
     timestamp: "Just now",
     suggestions: [
       "How does the Green Line work?",
@@ -849,7 +849,7 @@ export default function LeoChatWidget({
                     ? "Live WebSocket Neural Stream"
                     : "Automatic Fallback Mode Active"}
                 </span>
-                <span>Jungle Bet AI</span>
+                <span>RUSH HOUR BET AI</span>
               </div>
             </div>
           </motion.div>

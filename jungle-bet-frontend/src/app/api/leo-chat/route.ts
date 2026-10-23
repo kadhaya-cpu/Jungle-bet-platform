@@ -80,7 +80,7 @@ export async function POST(req: NextRequest) {
     ) {
       reply =
         "🛣️ **Verified Live Traffic Streams:**\n\n" +
-        "Jungle Bet connects to 3 verified high-speed optical feeds:\n\n" +
+        "RUSH HOUR BET connects to 3 verified high-speed optical feeds:\n\n" +
         "1. 🇺🇸 **Los Angeles - I-405 (Caltrans Overpass):** 10-lane super-highway with dense flow, ideal for **OVER 13** wagers.\n" +
         "2. 🇬🇧 **London - Chelsea Bridge (TfL Junction):** Famous urban crossing with distinct traffic pulses and light cycles.\n" +
         "3. 🇳🇱 **Amsterdam - A10 (Rijkswaterstaat Ring):** High-velocity highway overpass with steady European corridor traffic.\n\n" +
@@ -105,7 +105,7 @@ export async function POST(req: NextRequest) {
     ) {
       reply =
         "💳 **Wallet, Currencies & Instant Payments:**\n\n" +
-        "Jungle Bet supports 6 currencies with instant localized rails:\n\n" +
+        "RUSH HOUR BET supports 6 currencies with instant localized rails:\n\n" +
         "• **USD ($), GBP (£), EUR (€):** Instant credit cards (Stripe) & international debit.\n" +
         "• **KES (Kenyan Shilling):** Instant M-Pesa STK Push.\n" +
         "• **UGX (Ugandan Shilling):** MTN MoMo & Airtel Money.\n" +
@@ -129,7 +129,7 @@ export async function POST(req: NextRequest) {
       lower.includes("fair")
     ) {
       reply =
-        "🛡️ **Jungle Bet Security & Anti-Fraud Shield:**\n\n" +
+        "🛡️ **RUSH HOUR BET Security & Anti-Fraud Shield:**\n\n" +
         "• **Bet Velocity Anomaly:** Users placing >10 bets in 1 minute trigger automated security flags.\n" +
         "• **Jackpot Anomaly:** Instant payouts over $1,000 trigger automated audit verification.\n" +
         "• **Live Alert Stream:** Real-time fraud detection alerts stream directly to this terminal and [/admin/dashboard](/admin/dashboard).\n" +
@@ -150,7 +150,7 @@ export async function POST(req: NextRequest) {
       lower.includes("contact")
     ) {
       reply =
-        "👑 **Jungle Bet VIP Concierge & Support:**\n\n" +
+        "👑 **RUSH HOUR BET VIP Concierge & Support:**\n\n" +
         "I'm Leo, available 24/7 right here in chat! You can also manage your account details through the **Settings gear (⚙️)** in the top header:\n\n" +
         "• **View Balance/History:** Full ledger of your bets, wins, and deposits.\n" +
         "• **2-Factor Authentication:** Toggle one-click security.\n" +
@@ -168,7 +168,7 @@ export async function POST(req: NextRequest) {
     else {
       reply =
         `🦁 **Leo here, at your service!**\n\n` +
-        `I'm your Jungle Bet AI Strategist. You can ask me about:\n\n` +
+        `I'm your RUSH HOUR BET AI Strategist. You can ask me about:\n\n` +
         `• 🟢 **The Optical Green Line:** How the vehicle counter works in real-time.\n` +
         `• 📊 **Odds & Multipliers:** Analysis on OVER 13, UNDER 10, or STAR PICK.\n` +
         `• 🛣️ **Live Road Feeds:** Conditions on LA I-405, London Chelsea Bridge, and Amsterdam A10.\n` +

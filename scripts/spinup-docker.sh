@@ -5,7 +5,7 @@ PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$PROJECT_ROOT"
 
 echo "============================================================"
-echo " Jungle Bet: Local PostgreSQL & Redis Dependency Manager"
+echo " RUSH HOUR BET: Local PostgreSQL & Redis Dependency Manager"
 echo "============================================================"
 
 # Check if docker is installed

@@ -88,7 +88,7 @@ export default function Header() {
     storeLogout();
     try {
       await signOut({ redirect: false });
-      toast.info("Logged out from Jungle Bet");
+      toast.info("Logged out from RUSH HOUR BET");
     } catch {
       // Fallback
     }
@@ -140,7 +140,7 @@ export default function Header() {
           >
             <div className="flex items-center gap-2">
               <span className="font-heading font-black text-2xl sm:text-3xl tracking-tight uppercase italic leading-none bg-gradient-to-r from-blue-500 via-teal-400 to-[#00e5b9] bg-clip-text text-transparent drop-shadow-[0_0_20px_rgba(20,184,166,0.35)] transition-transform duration-300 group-hover:scale-105">
-                JUNGLE BET
+                RUSH HOUR BET
               </span>
               {/* PULSING RED DOT ANIMATION + "LIVE" IN RED UPPERCASE */}
               <div className="flex items-center gap-1.5 ml-1 leading-none">

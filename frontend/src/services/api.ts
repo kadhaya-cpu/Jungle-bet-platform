@@ -61,7 +61,7 @@ api.interceptors.response.use(
     // Network / Connection Error Handling
     if (!error.response) {
       const friendlyMessage =
-        'Network error: Unable to connect to Jungle Bet backend server. Please verify your internet connection.';
+        'Network error: Unable to connect to RUSH HOUR BET backend server. Please verify your internet connection.';
       error.message = friendlyMessage;
       return Promise.reject(error);
     }

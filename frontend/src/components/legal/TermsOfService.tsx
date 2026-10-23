@@ -20,7 +20,7 @@ export interface TermsOfServiceProps {
 
 /**
  * TermsOfService Legal Component
- * Displays the full Jungle Bet Terms of Service with prominent, mandatory
+ * Displays the full RUSH HOUR BET Terms of Service with prominent, mandatory
  * Currency Conversion & Exchange Rates (FX Spread) and No Arbitrage clauses.
  */
 export const TermsOfService: React.FC<TermsOfServiceProps> = ({
@@ -83,7 +83,7 @@ export const TermsOfService: React.FC<TermsOfServiceProps> = ({
             CRITICAL WARNING — 18+ AGE LIMIT & HIGH FINANCIAL RISK:
           </p>
           <p className="text-red-300 mt-0.5">
-            Participation on Jungle Bet is strictly restricted to individuals aged{' '}
+            Participation on RUSH HOUR BET is strictly restricted to individuals aged{' '}
             <strong className="text-red-400 underline">18 years or older</strong>. Optical
             traffic wagering involves substantial risk of financial loss. Furthermore, all
             non-USD deposits and withdrawals are subject to{' '}
@@ -108,10 +108,10 @@ export const TermsOfService: React.FC<TermsOfServiceProps> = ({
             1. Scope of Service & YOLOv8 Optical Telemetry Settlement
           </h3>
           <p>
-            1.1. Welcome to <strong>Jungle Bet</strong> (&ldquo;Platform&rdquo;, &ldquo;we&rdquo;, &ldquo;us&rdquo;, or &ldquo;our&rdquo;). By creating an account, accessing live camera feeds, depositing funds, or locking in a wager, you enter into a legally binding contract governed by these Terms of Service.
+            1.1. Welcome to <strong>RUSH HOUR BET</strong> (&ldquo;Platform&rdquo;, &ldquo;we&rdquo;, &ldquo;us&rdquo;, or &ldquo;our&rdquo;). By creating an account, accessing live camera feeds, depositing funds, or locking in a wager, you enter into a legally binding contract governed by these Terms of Service.
           </p>
           <p>
-            1.2. Jungle Bet operates real-time optical vehicle-counting prediction markets powered by YOLOv8 computer vision telemetry across global traffic feeds. Market outcomes (&ldquo;Under 10 Vehicles&rdquo;, &ldquo;Over 13 Vehicles&rdquo;, &ldquo;Star Pick Exact 7&rdquo;, and &ldquo;Exact High 20&rdquo;) are resolved deterministically by our automated backend optical counting engine at the conclusion of each 30-second window. Server telemetry logs are final and binding.
+            1.2. RUSH HOUR BET operates real-time optical vehicle-counting prediction markets powered by YOLOv8 computer vision telemetry across global traffic feeds. Market outcomes (&ldquo;Under 10 Vehicles&rdquo;, &ldquo;Over 13 Vehicles&rdquo;, &ldquo;Star Pick Exact 7&rdquo;, and &ldquo;Exact High 20&rdquo;) are resolved deterministically by our automated backend optical counting engine at the conclusion of each 30-second window. Server telemetry logs are final and binding.
           </p>
           <p className="text-red-400 font-semibold">
             1.3. STRICT AGE REQUIREMENT (18+): You must be at least eighteen (18) years of age (or the legal age of majority in your jurisdiction, whichever is higher) to access or use this Platform. Accounts found to belong to underage users will be immediately terminated and reported to regulatory authorities.
@@ -134,11 +134,11 @@ export const TermsOfService: React.FC<TermsOfServiceProps> = ({
           </div>
 
           <p className="text-white font-medium">
-            2.1. <strong>Base Settlement Currency (USD):</strong> All wagers, account balances, reserve pool calculations, and payout liabilities on Jungle Bet are denominated and settled internally in <strong>United States Dollars (USD)</strong>.
+            2.1. <strong>Base Settlement Currency (USD):</strong> All wagers, account balances, reserve pool calculations, and payout liabilities on RUSH HOUR BET are denominated and settled internally in <strong>United States Dollars (USD)</strong>.
           </p>
 
           <p className="text-red-300 font-semibold bg-red-950/50 border border-red-500/40 rounded-lg p-3">
-            2.2. <strong>PROPRIETARY RATES & HIDDEN FX SPREADS:</strong> Whenever you deposit or withdraw funds in a local or non-USD currency (including but not limited to EUR, GBP, UGX, KES, TZS, or NGN), Jungle Bet applies <u>proprietary internal foreign exchange rates that include an embedded, hidden FX spread and treasury liquidity margin</u> (typically ranging from 3% to 8.5% depending on currency volatility and payment corridor). These proprietary rates intentionally differ from mid-market interbank or central bank reference rates.
+            2.2. <strong>PROPRIETARY RATES & HIDDEN FX SPREADS:</strong> Whenever you deposit or withdraw funds in a local or non-USD currency (including but not limited to EUR, GBP, UGX, KES, TZS, or NGN), RUSH HOUR BET applies <u>proprietary internal foreign exchange rates that include an embedded, hidden FX spread and treasury liquidity margin</u> (typically ranging from 3% to 8.5% depending on currency volatility and payment corridor). These proprietary rates intentionally differ from mid-market interbank or central bank reference rates.
           </p>
 
           <p className="text-gray-200">
@@ -146,10 +146,10 @@ export const TermsOfService: React.FC<TermsOfServiceProps> = ({
           </p>
           <ul className="list-disc pl-5 space-y-1 text-gray-200 text-xs sm:text-sm">
             <li>
-              <strong>Deposits:</strong> Local currency deposits are converted into USD using Jungle Bet&apos;s proprietary conversion rate, which incorporates our internal FX spread and gateway clearing fees prior to crediting your USD vault balance.
+              <strong>Deposits:</strong> Local currency deposits are converted into USD using RUSH HOUR BET&apos;s proprietary conversion rate, which incorporates our internal FX spread and gateway clearing fees prior to crediting your USD vault balance.
             </li>
             <li>
-              <strong>Withdrawals:</strong> USD withdrawal requests paid out to local mobile money (M-Pesa, Airtel Money), Paystack, Flutterwave, or European banking rails are converted at Jungle Bet&apos;s prevailing proprietary payout rate, which deducts the embedded FX spread.
+              <strong>Withdrawals:</strong> USD withdrawal requests paid out to local mobile money (M-Pesa, Airtel Money), Paystack, Flutterwave, or European banking rails are converted at RUSH HOUR BET&apos;s prevailing proprietary payout rate, which deducts the embedded FX spread.
             </li>
             <li>
               <strong>Dynamic Rate Adjustments:</strong> Proprietary exchange rates and hidden spreads may be adjusted at any time without prior notice to protect the Platform&apos;s 25% Treasury Safety Float against foreign exchange volatility.
@@ -211,7 +211,7 @@ export const TermsOfService: React.FC<TermsOfServiceProps> = ({
           </div>
 
           <p className="text-gray-200">
-            3.1. <strong>Prohibition of FX & Odds Arbitrage:</strong> Users are strictly prohibited from engaging in any form of currency arbitrage, triangular conversion cycling, payment rail cycling (e.g., depositing via one currency/gateway and withdrawing via another without bona fide wagering turnover), or exploiting latency between external FX spot markets and Jungle Bet&apos;s internal conversion tables.
+            3.1. <strong>Prohibition of FX & Odds Arbitrage:</strong> Users are strictly prohibited from engaging in any form of currency arbitrage, triangular conversion cycling, payment rail cycling (e.g., depositing via one currency/gateway and withdrawing via another without bona fide wagering turnover), or exploiting latency between external FX spot markets and RUSH HOUR BET&apos;s internal conversion tables.
           </p>
 
           <p className="text-gray-200">
@@ -233,7 +233,7 @@ export const TermsOfService: React.FC<TermsOfServiceProps> = ({
             4.1. Minimum deposit is <strong>${FINANCIAL_LIMITS.MIN_DEPOSIT_USD.toFixed(2)} USD</strong> equivalent; minimum withdrawal is <strong>${FINANCIAL_LIMITS.MIN_WITHDRAWAL_USD.toFixed(2)} USD</strong> equivalent. Single wagers must fall between <strong>${FINANCIAL_LIMITS.MIN_BET_USD.toFixed(2)} USD</strong> and <strong>${FINANCIAL_LIMITS.MAX_BET_USD.toLocaleString()} USD</strong>.
           </p>
           <p>
-            4.2. To guarantee platform solvency, Jungle Bet enforces an automated <strong>25% Treasury Safety Float</strong>. High-value withdrawals or payouts exceeding ${FINANCIAL_LIMITS.HIGH_WIN_ALERT_USD.toLocaleString()} USD may be queued for manual administrative verification and KYC clearance prior to disbursement.
+            4.2. To guarantee platform solvency, RUSH HOUR BET enforces an automated <strong>25% Treasury Safety Float</strong>. High-value withdrawals or payouts exceeding ${FINANCIAL_LIMITS.HIGH_WIN_ALERT_USD.toLocaleString()} USD may be queued for manual administrative verification and KYC clearance prior to disbursement.
           </p>
         </section>
 
@@ -246,7 +246,7 @@ export const TermsOfService: React.FC<TermsOfServiceProps> = ({
             5.1. FINANCIAL RISK WARNING: Wagering on live traffic telemetry carries a high degree of financial risk. Past vehicle flow density in any European or global city does not guarantee future traffic counts. You may lose 100% of your staked capital.
           </p>
           <p>
-            5.2. By ticking the acceptance box below, you irrevocably waive any claim, dispute, or chargeback arising from (a) the application of Jungle Bet&apos;s proprietary FX rates and hidden spreads on deposits or withdrawals, or (b) automated YOLOv8 optical settlement determinations.
+            5.2. By ticking the acceptance box below, you irrevocably waive any claim, dispute, or chargeback arising from (a) the application of RUSH HOUR BET&apos;s proprietary FX rates and hidden spreads on deposits or withdrawals, or (b) automated YOLOv8 optical settlement determinations.
           </p>
         </section>
       </div>

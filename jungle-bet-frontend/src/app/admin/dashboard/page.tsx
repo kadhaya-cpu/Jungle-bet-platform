@@ -347,7 +347,7 @@ export default function AdminDashboardPage() {
                 </div>
                 <div>
                   <h1 className="text-base sm:text-lg font-black uppercase tracking-wider text-white flex items-center gap-2">
-                    Jungle Bet Fraud Shield
+                    RUSH HOUR BET Fraud Shield
                     <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[var(--jungle-green)]/20 text-[var(--jungle-green)] border border-[var(--jungle-green)]/30 font-bold">
                       ACTIVE
                     </span>

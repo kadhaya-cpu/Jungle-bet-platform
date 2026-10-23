@@ -82,7 +82,7 @@ function LoginForm() {
       if (result?.error) {
         toast.error("Invalid credentials. Please verify your phone number and password.");
       } else {
-        toast.success("Welcome back! Logging into Jungle Bet...");
+        toast.success("Welcome back! Logging into RUSH HOUR BET...");
         await fetchBalance();
         await detectGeoCurrency(fullPhone);
         router.replace(callbackUrl);
@@ -103,11 +103,11 @@ function LoginForm() {
 
       {/* CENTERED WHITE/LIGHT MMG CARD - BORDERLESS, SMOOTH, MODERN */}
       <div className="relative rounded-3xl bg-white shadow-[0_25px_70px_rgba(0,0,0,0.55)] p-7 sm:p-9 border-0 select-none">
-        {/* LARGE 'JUNGLE BET' LOGO AT TOP OF CARD WITH BLUE-TO-GREEN GRADIENT */}
+        {/* LARGE 'RUSH HOUR BET' LOGO AT TOP OF CARD WITH BLUE-TO-GREEN GRADIENT */}
         <div className="flex flex-col items-center text-center mb-6">
           <Link href="/" className="inline-block group mb-2">
             <span className="font-black text-3xl sm:text-4xl tracking-tight uppercase italic leading-none bg-gradient-to-r from-blue-600 via-teal-500 to-emerald-500 bg-clip-text text-transparent drop-shadow-sm group-hover:scale-105 transition-transform inline-block">
-              JUNGLE BET
+              RUSH HOUR BET
             </span>
           </Link>
           <div className="flex items-center gap-1.5 mt-0.5 mb-2">

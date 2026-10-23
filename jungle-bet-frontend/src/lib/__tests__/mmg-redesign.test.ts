@@ -8,7 +8,7 @@ import { authUserService } from "../auth-user-service";
 import { PRESET_MARKETS } from "@/components/StickyBettingPanel";
 
 console.log("\n=======================================================");
-console.log("🏙️ JUNGLE BET MMG REDESIGN & EUROPE RADAR TEST SUITE");
+console.log("🏙️ RUSH HOUR BET MMG REDESIGN & EUROPE RADAR TEST SUITE");
 console.log("=======================================================\n");
 
 // -------------------------------------------------------------------

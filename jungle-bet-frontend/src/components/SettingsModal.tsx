@@ -187,7 +187,7 @@ export default function SettingsModal({
         action: "delete_account",
         userId,
       });
-      toast.success("Your Jungle Bet account has been permanently deleted.");
+      toast.success("Your RUSH HOUR BET account has been permanently deleted.");
       storeLogout();
       await signOut({ redirect: false });
       onClose();
@@ -203,7 +203,7 @@ export default function SettingsModal({
     storeLogout();
     try {
       await signOut({ redirect: false });
-      toast.info("Logged out from Jungle Bet");
+      toast.info("Logged out from RUSH HOUR BET");
     } catch {
       // Ignored
     }
@@ -240,7 +240,7 @@ export default function SettingsModal({
                 <div>
                   <h2 className="text-base sm:text-lg font-black tracking-wider uppercase text-white">
                     {activeTab === "menu"
-                      ? "Jungle Bet Settings"
+                      ? "RUSH HOUR BET Settings"
                       : activeTab === "balance_history"
                       ? "Balance & History"
                       : activeTab === "two_factor"
@@ -530,7 +530,7 @@ export default function SettingsModal({
                       2-Factor Authentication (2FA)
                     </h3>
                     <p className="text-xs text-gray-400 max-w-xs mt-1">
-                      Adds an extra layer of protection to your Jungle Bet wallet, ensuring that bet placements and instant withdrawals are authorized.
+                      Adds an extra layer of protection to your RUSH HOUR BET wallet, ensuring that bet placements and instant withdrawals are authorized.
                     </p>
 
                     <div className="mt-4 flex items-center gap-3">
@@ -612,7 +612,7 @@ export default function SettingsModal({
                     </div>
 
                     <p className="text-xs text-gray-300 leading-relaxed">
-                      Warning: Deleting your Jungle Bet account will erase your user record, active
+                      Warning: Deleting your RUSH HOUR BET account will erase your user record, active
                       bets, and remaining balance. This action cannot be reversed.
                     </p>
 

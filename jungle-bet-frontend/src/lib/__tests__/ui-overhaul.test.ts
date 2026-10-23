@@ -11,7 +11,7 @@ import {
 } from "@/components/LiveFeedPreview";
 
 console.log("\n=======================================================");
-console.log("🚀 JUNGLE BET UI/UX OVERHAUL & CURRENCY SYSTEM VERIFICATION");
+console.log("🚀 RUSH HOUR BET UI/UX OVERHAUL & CURRENCY SYSTEM VERIFICATION");
 console.log("=======================================================\n");
 
 // 1. SMART CURRENCY SYSTEM VERIFICATION

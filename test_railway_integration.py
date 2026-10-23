@@ -120,6 +120,6 @@ class TestRailwayBackendConnectivity(unittest.TestCase):
 
 if __name__ == "__main__":
     print("\n" + "=" * 65)
-    print("🚂 JUNGLE BET RAILWAY INTEGRATION & BACKEND CONNECTIVITY SUITE")
+    print("🚂 RUSH HOUR BET RAILWAY INTEGRATION & BACKEND CONNECTIVITY SUITE")
     print("=" * 65 + "\n")
     unittest.main()
