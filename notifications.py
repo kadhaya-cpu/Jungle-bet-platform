@@ -27,7 +27,8 @@ TELEGRAM_BOT_TOKEN = (
 ).strip()
 TELEGRAM_ADMIN_CHAT_ID = (
     os.getenv("RUSH_HOUR_BET_TELEGRAM_ADMIN_CHAT_ID")
-    or os.getenv("TELEGRAM_ADMIN_CHAT_ID", "")
+    or os.getenv("TELEGRAM_ADMIN_CHAT_ID")
+    or os.getenv("TELEGRAM_CHAT_ID", "")
 ).strip()
 ALERT_ADMIN_EMAIL = (
     os.getenv("RUSH_HOUR_BET_ADMIN_EMAIL")
@@ -204,6 +205,46 @@ class NotificationService:
                 "failed_url": failed_url,
                 "fallback_url": fallback_url,
                 "switch_ms": switch_ms,
+                "reason": reason,
+            },
+            session=session,
+            send_email=True,
+        )
+
+    async def alert_persistent_feed_issue(
+        self,
+        city_name: str,
+        consecutive_failures: int,
+        active_fallback_url: str,
+        fallback_level: int = 3,
+        reason: str = "Persistent primary & secondary YouTube stream failures",
+        session=None,
+    ) -> Dict[str, Any]:
+        """
+        Dispatch critical Telegram and Email alert when a city experiences persistent feed issues
+        (e.g., repeated YouTube API/live stream failures forcing prolonged local fallback).
+        """
+        title = f"🚨 Persistent Feed Issue: {city_name} ({consecutive_failures} consecutive failures)"
+        msg = (
+            f"🚨 <b>RUSH HOUR BET — PERSISTENT CITY FEED ISSUE ALERT</b> 🚨\n"
+            f"━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+            f"🌆 <b>City:</b> {city_name}\n"
+            f"🔢 <b>Consecutive Failures:</b> <b>{consecutive_failures}</b>\n"
+            f"📶 <b>Active Fallback Level:</b> Level {fallback_level} (<code>{active_fallback_url}</code>)\n"
+            f"📝 <b>Diagnostic Reason:</b> {reason}\n"
+            f"⏰ <b>Timestamp:</b> {datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}\n"
+            f"━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+            f"🛠️ <i>Action Recommended: Review city feed sources or apply manual override in Admin Dashboard.</i>"
+        )
+        return await self.log_alert(
+            alert_type="PERSISTENT_FEED_ISSUE",
+            title=title,
+            message=msg,
+            payload={
+                "city_name": city_name,
+                "consecutive_failures": consecutive_failures,
+                "active_fallback_url": active_fallback_url,
+                "fallback_level": fallback_level,
                 "reason": reason,
             },
             session=session,

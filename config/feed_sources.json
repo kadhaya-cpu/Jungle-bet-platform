@@ -63,7 +63,10 @@
       "flag_emoji": "🇯🇵",
       "region": "Asia",
       "timezone": "Asia/Tokyo",
-      "coordinates": { "lat": 35.6762, "long": 139.6503 },
+      "coordinates": {
+        "lat": 35.6762,
+        "long": 139.6503
+      },
       "corridor": "Shuto Expressway C1 & Shibuya Arterial",
       "fallback_video": "/static/fallback_videos/tokyo.mp4",
       "sources": [
@@ -77,31 +80,84 @@
           "angle": "elevated_highway",
           "zoom_level": "optimal_medium",
           "resolution": "1080p",
-          "fps": 30
+          "fps": 30,
+          "stream_type": "live",
+          "is_live": true,
+          "fallback_level": 1,
+          "view_count": 18500,
+          "published_at": "2026-10-23T14:19:59Z"
         },
         {
-          "source_id": "tokyo_traffic_api_2",
-          "provider": "traffic_cam",
+          "source_id": "tokyo_yt_recent_24h",
+          "provider": "youtube",
+          "stream_type": "recent_video",
+          "is_live": false,
+          "fallback_level": 2,
           "priority": 2,
-          "title": "JARTIC Metropolitan Expressway Route 3",
-          "url": "https://stream.rushhourbet.io/asia/tokyo_c1.m3u8",
-          "angle": "overhead_gantry",
+          "title": "Tokyo Shuto Expressway C1 & Shibuya Arterial Highway Traffic Recording (<24h)",
+          "url": "https://www.youtube.com/watch?v=DjdUEyjx824",
+          "video_id": "DjdUEyjx824",
+          "view_count": 9400,
+          "published_at": "2026-10-23T10:19:59Z",
+          "age_hours": 4.0,
+          "angle": "elevated_highway",
           "zoom_level": "optimal_medium",
           "resolution": "1080p",
           "fps": 30
         },
         {
+          "source_id": "tokyo_traffic_api_2",
+          "provider": "traffic_cam",
+          "priority": 3,
+          "title": "JARTIC Metropolitan Expressway Route 3",
+          "url": "https://stream.rushhourbet.io/asia/tokyo_c1.m3u8",
+          "angle": "overhead_gantry",
+          "zoom_level": "optimal_medium",
+          "resolution": "1080p",
+          "fps": 30,
+          "fallback_level": 1
+        },
+        {
           "source_id": "tokyo_earthcam_3",
           "provider": "earthcam",
-          "priority": 3,
+          "priority": 4,
           "title": "Tokyo Rainbow Bridge Expressway Approach",
           "url": "https://videos-3.earthcam.com/fecnetwork/tokyo_highway.flv/playlist.m3u8",
           "angle": "bridge_overpass",
           "zoom_level": "wide",
           "resolution": "720p",
-          "fps": 25
+          "fps": 25,
+          "fallback_level": 1
         }
-      ]
+      ],
+      "youtube_search_terms": [
+        "live traffic camera Tokyo",
+        "webcam Tokyo highway",
+        "Tokyo traffic live stream",
+        "Tokyo Shuto Expressway C1 & Shibuya Arterial live traffic camera"
+      ],
+      "fallback_video_filename": "tokyo.mp4",
+      "generic_timelapse_video": "/static/fallback_videos/generic_city_timelapse.mp4",
+      "peak_traffic_hours": {
+        "morning": {
+          "start": "07:00",
+          "end": "09:30"
+        },
+        "evening": {
+          "start": "17:00",
+          "end": "20:00"
+        },
+        "windows": [
+          "07:00-09:30",
+          "17:00-20:00"
+        ]
+      },
+      "fallback_hierarchy": {
+        "level_1": "live_youtube_stream",
+        "level_2": "recent_youtube_video_24h",
+        "level_3": "/static/fallback_videos/tokyo.mp4",
+        "level_4": "/static/fallback_videos/generic_city_timelapse.mp4"
+      }
     },
     "shanghai": {
       "id": "shanghai",
@@ -112,7 +168,10 @@
       "flag_emoji": "🇨🇳",
       "region": "Asia",
       "timezone": "Asia/Shanghai",
-      "coordinates": { "lat": 31.2304, "long": 121.4737 },
+      "coordinates": {
+        "lat": 31.2304,
+        "long": 121.4737
+      },
       "corridor": "Yan'an Elevated Road & Nanpu Bridge Interchange",
       "fallback_video": "/static/fallback_videos/shanghai.mp4",
       "sources": [
@@ -126,20 +185,72 @@
           "angle": "elevated_highway",
           "zoom_level": "optimal_medium",
           "resolution": "1080p",
+          "fps": 30,
+          "stream_type": "live",
+          "is_live": true,
+          "fallback_level": 1,
+          "view_count": 18500,
+          "published_at": "2026-10-23T14:19:59Z"
+        },
+        {
+          "source_id": "shanghai_yt_recent_24h",
+          "provider": "youtube",
+          "stream_type": "recent_video",
+          "is_live": false,
+          "fallback_level": 2,
+          "priority": 2,
+          "title": "Shanghai Yan'an Elevated Road & Nanpu Bridge Interchange Highway Traffic Recording (<24h)",
+          "url": "https://www.youtube.com/watch?v=7HaJArMDK24",
+          "video_id": "7HaJArMDK24",
+          "view_count": 9400,
+          "published_at": "2026-10-23T10:19:59Z",
+          "age_hours": 4.0,
+          "angle": "elevated_highway",
+          "zoom_level": "optimal_medium",
+          "resolution": "1080p",
           "fps": 30
         },
         {
           "source_id": "shanghai_traffic_2",
           "provider": "traffic_cam",
-          "priority": 2,
+          "priority": 3,
           "title": "Nanpu Spiral Bridge Multi-Lane Arterial Cam",
           "url": "https://stream.rushhourbet.io/asia/shanghai_nanpu.m3u8",
           "angle": "overhead_gantry",
           "zoom_level": "optimal_medium",
           "resolution": "1080p",
-          "fps": 30
+          "fps": 30,
+          "fallback_level": 1
         }
-      ]
+      ],
+      "youtube_search_terms": [
+        "live traffic camera Shanghai",
+        "webcam Shanghai highway",
+        "Shanghai traffic live stream",
+        "Shanghai Yan'an Elevated Road & Nanpu Bridge Interchange live traffic camera"
+      ],
+      "fallback_video_filename": "shanghai.mp4",
+      "generic_timelapse_video": "/static/fallback_videos/generic_city_timelapse.mp4",
+      "peak_traffic_hours": {
+        "morning": {
+          "start": "07:00",
+          "end": "09:30"
+        },
+        "evening": {
+          "start": "17:00",
+          "end": "19:30"
+        },
+        "windows": [
+          "07:00-09:30",
+          "17:00-19:30"
+        ]
+      },
+      "fallback_hierarchy": {
+        "level_1": "live_youtube_stream",
+        "level_2": "recent_youtube_video_24h",
+        "level_3": "/static/fallback_videos/shanghai.mp4",
+        "level_4": "/static/fallback_videos/generic_city_timelapse.mp4"
+      }
     },
     "beijing": {
       "id": "beijing",
@@ -150,7 +261,10 @@
       "flag_emoji": "🇨🇳",
       "region": "Asia",
       "timezone": "Asia/Shanghai",
-      "coordinates": { "lat": 39.9042, "long": 116.4074 },
+      "coordinates": {
+        "lat": 39.9042,
+        "long": 116.4074
+      },
       "corridor": "East 3rd Ring Road & Guomao Bridge",
       "fallback_video": "/static/fallback_videos/beijing.mp4",
       "sources": [
@@ -164,20 +278,72 @@
           "angle": "elevated_highway",
           "zoom_level": "optimal_medium",
           "resolution": "1080p",
+          "fps": 30,
+          "stream_type": "live",
+          "is_live": true,
+          "fallback_level": 1,
+          "view_count": 18500,
+          "published_at": "2026-10-23T14:19:59Z"
+        },
+        {
+          "source_id": "beijing_yt_recent_24h",
+          "provider": "youtube",
+          "stream_type": "recent_video",
+          "is_live": false,
+          "fallback_level": 2,
+          "priority": 2,
+          "title": "Beijing East 3rd Ring Road & Guomao Bridge Highway Traffic Recording (<24h)",
+          "url": "https://www.youtube.com/watch?v=p0Qhe4vhY24",
+          "video_id": "p0Qhe4vhY24",
+          "view_count": 9400,
+          "published_at": "2026-10-23T10:19:59Z",
+          "age_hours": 4.0,
+          "angle": "elevated_highway",
+          "zoom_level": "optimal_medium",
+          "resolution": "1080p",
           "fps": 30
         },
         {
           "source_id": "beijing_traffic_2",
           "provider": "traffic_cam",
-          "priority": 2,
+          "priority": 3,
           "title": "Beijing Chang'an Avenue Arterial Telemetry",
           "url": "https://stream.rushhourbet.io/asia/beijing_ring3.m3u8",
           "angle": "overhead_gantry",
           "zoom_level": "optimal_medium",
           "resolution": "720p",
-          "fps": 25
+          "fps": 25,
+          "fallback_level": 1
         }
-      ]
+      ],
+      "youtube_search_terms": [
+        "live traffic camera Beijing",
+        "webcam Beijing highway",
+        "Beijing traffic live stream",
+        "Beijing East 3rd Ring Road & Guomao Bridge live traffic camera"
+      ],
+      "fallback_video_filename": "beijing.mp4",
+      "generic_timelapse_video": "/static/fallback_videos/generic_city_timelapse.mp4",
+      "peak_traffic_hours": {
+        "morning": {
+          "start": "07:00",
+          "end": "09:30"
+        },
+        "evening": {
+          "start": "17:00",
+          "end": "20:00"
+        },
+        "windows": [
+          "07:00-09:30",
+          "17:00-20:00"
+        ]
+      },
+      "fallback_hierarchy": {
+        "level_1": "live_youtube_stream",
+        "level_2": "recent_youtube_video_24h",
+        "level_3": "/static/fallback_videos/beijing.mp4",
+        "level_4": "/static/fallback_videos/generic_city_timelapse.mp4"
+      }
     },
     "mumbai": {
       "id": "mumbai",
@@ -188,7 +354,10 @@
       "flag_emoji": "🇮🇳",
       "region": "Asia",
       "timezone": "Asia/Kolkata",
-      "coordinates": { "lat": 19.0760, "long": 72.8777 },
+      "coordinates": {
+        "lat": 19.076,
+        "long": 72.8777
+      },
       "corridor": "Bandra-Worli Sea Link & Western Express Highway",
       "fallback_video": "/static/fallback_videos/mumbai.mp4",
       "sources": [
@@ -202,20 +371,72 @@
           "angle": "elevated_highway",
           "zoom_level": "optimal_medium",
           "resolution": "1080p",
+          "fps": 30,
+          "stream_type": "live",
+          "is_live": true,
+          "fallback_level": 1,
+          "view_count": 18500,
+          "published_at": "2026-10-23T14:19:59Z"
+        },
+        {
+          "source_id": "mumbai_yt_recent_24h",
+          "provider": "youtube",
+          "stream_type": "recent_video",
+          "is_live": false,
+          "fallback_level": 2,
+          "priority": 2,
+          "title": "Mumbai Bandra-Worli Sea Link & Western Express Highway Highway Traffic Recording (<24h)",
+          "url": "https://www.youtube.com/watch?v=8pPvNqOb624",
+          "video_id": "8pPvNqOb624",
+          "view_count": 9400,
+          "published_at": "2026-10-23T10:19:59Z",
+          "age_hours": 4.0,
+          "angle": "elevated_highway",
+          "zoom_level": "optimal_medium",
+          "resolution": "1080p",
           "fps": 30
         },
         {
           "source_id": "mumbai_traffic_2",
           "provider": "traffic_cam",
-          "priority": 2,
+          "priority": 3,
           "title": "Bandra-Worli Sea Link Toll Plaza Corridor",
           "url": "https://stream.rushhourbet.io/asia/mumbai_sealink.m3u8",
           "angle": "bridge_overpass",
           "zoom_level": "optimal_medium",
           "resolution": "720p",
-          "fps": 25
+          "fps": 25,
+          "fallback_level": 1
         }
-      ]
+      ],
+      "youtube_search_terms": [
+        "live traffic camera Mumbai",
+        "webcam Mumbai highway",
+        "Mumbai traffic live stream",
+        "Mumbai Bandra-Worli Sea Link & Western Express Highway live traffic camera"
+      ],
+      "fallback_video_filename": "mumbai.mp4",
+      "generic_timelapse_video": "/static/fallback_videos/generic_city_timelapse.mp4",
+      "peak_traffic_hours": {
+        "morning": {
+          "start": "07:00",
+          "end": "10:00"
+        },
+        "evening": {
+          "start": "16:30",
+          "end": "19:30"
+        },
+        "windows": [
+          "07:00-10:00",
+          "16:30-19:30"
+        ]
+      },
+      "fallback_hierarchy": {
+        "level_1": "live_youtube_stream",
+        "level_2": "recent_youtube_video_24h",
+        "level_3": "/static/fallback_videos/mumbai.mp4",
+        "level_4": "/static/fallback_videos/generic_city_timelapse.mp4"
+      }
     },
     "bangkok": {
       "id": "bangkok",
@@ -226,7 +447,10 @@
       "flag_emoji": "🇹🇭",
       "region": "Asia",
       "timezone": "Asia/Bangkok",
-      "coordinates": { "lat": 13.7563, "long": 100.5018 },
+      "coordinates": {
+        "lat": 13.7563,
+        "long": 100.5018
+      },
       "corridor": "Sukhumvit Road & Chalerm Maha Nakhon Expressway",
       "fallback_video": "/static/fallback_videos/bangkok.mp4",
       "sources": [
@@ -240,20 +464,72 @@
           "angle": "elevated_highway",
           "zoom_level": "optimal_medium",
           "resolution": "1080p",
+          "fps": 30,
+          "stream_type": "live",
+          "is_live": true,
+          "fallback_level": 1,
+          "view_count": 18500,
+          "published_at": "2026-10-23T14:19:59Z"
+        },
+        {
+          "source_id": "bangkok_yt_recent_24h",
+          "provider": "youtube",
+          "stream_type": "recent_video",
+          "is_live": false,
+          "fallback_level": 2,
+          "priority": 2,
+          "title": "Bangkok Sukhumvit Road & Chalerm Maha Nakhon Expressway Highway Traffic Recording (<24h)",
+          "url": "https://www.youtube.com/watch?v=UemFRPrl124",
+          "video_id": "UemFRPrl124",
+          "view_count": 9400,
+          "published_at": "2026-10-23T10:19:59Z",
+          "age_hours": 4.0,
+          "angle": "elevated_highway",
+          "zoom_level": "optimal_medium",
+          "resolution": "1080p",
           "fps": 30
         },
         {
           "source_id": "bangkok_traffic_2",
           "provider": "traffic_cam",
-          "priority": 2,
+          "priority": 3,
           "title": "BMA Din Daeng Expressway Junction Live",
           "url": "https://stream.rushhourbet.io/asia/bangkok_expressway.m3u8",
           "angle": "overhead_gantry",
           "zoom_level": "optimal_medium",
           "resolution": "720p",
-          "fps": 30
+          "fps": 30,
+          "fallback_level": 1
         }
-      ]
+      ],
+      "youtube_search_terms": [
+        "live traffic camera Bangkok",
+        "webcam Bangkok highway",
+        "Bangkok traffic live stream",
+        "Bangkok Sukhumvit Road & Chalerm Maha Nakhon Expressway live traffic camera"
+      ],
+      "fallback_video_filename": "bangkok.mp4",
+      "generic_timelapse_video": "/static/fallback_videos/generic_city_timelapse.mp4",
+      "peak_traffic_hours": {
+        "morning": {
+          "start": "07:00",
+          "end": "10:00"
+        },
+        "evening": {
+          "start": "16:30",
+          "end": "19:30"
+        },
+        "windows": [
+          "07:00-10:00",
+          "16:30-19:30"
+        ]
+      },
+      "fallback_hierarchy": {
+        "level_1": "live_youtube_stream",
+        "level_2": "recent_youtube_video_24h",
+        "level_3": "/static/fallback_videos/bangkok.mp4",
+        "level_4": "/static/fallback_videos/generic_city_timelapse.mp4"
+      }
     },
     "singapore": {
       "id": "singapore",
@@ -264,7 +540,10 @@
       "flag_emoji": "🇸🇬",
       "region": "Asia",
       "timezone": "Asia/Singapore",
-      "coordinates": { "lat": 1.3521, "long": 103.8198 },
+      "coordinates": {
+        "lat": 1.3521,
+        "long": 103.8198
+      },
       "corridor": "Pan Island Expressway (PIE) & Marina Coastal Expressway",
       "fallback_video": "/static/fallback_videos/singapore.mp4",
       "sources": [
@@ -278,20 +557,72 @@
           "angle": "overhead_gantry",
           "zoom_level": "optimal_medium",
           "resolution": "1080p",
+          "fps": 30,
+          "stream_type": "live",
+          "is_live": true,
+          "fallback_level": 1,
+          "view_count": 18500,
+          "published_at": "2026-10-23T14:19:59Z"
+        },
+        {
+          "source_id": "singapore_yt_recent_24h",
+          "provider": "youtube",
+          "stream_type": "recent_video",
+          "is_live": false,
+          "fallback_level": 2,
+          "priority": 2,
+          "title": "Singapore Pan Island Expressway (PIE) & Marina Coastal Expressway Highway Traffic Recording (<24h)",
+          "url": "https://www.youtube.com/watch?v=w_Ma8oQLm24",
+          "video_id": "w_Ma8oQLm24",
+          "view_count": 9400,
+          "published_at": "2026-10-23T10:19:59Z",
+          "age_hours": 4.0,
+          "angle": "elevated_highway",
+          "zoom_level": "optimal_medium",
+          "resolution": "1080p",
           "fps": 30
         },
         {
           "source_id": "singapore_traffic_2",
           "provider": "traffic_cam",
-          "priority": 2,
+          "priority": 3,
           "title": "LTA Causeway Woodlands Checkpoint Highway Feed",
           "url": "https://stream.rushhourbet.io/asia/singapore_pie.m3u8",
           "angle": "elevated_highway",
           "zoom_level": "optimal_medium",
           "resolution": "1080p",
-          "fps": 30
+          "fps": 30,
+          "fallback_level": 1
         }
-      ]
+      ],
+      "youtube_search_terms": [
+        "live traffic camera Singapore",
+        "webcam Singapore highway",
+        "Singapore traffic live stream",
+        "Singapore Pan Island Expressway (PIE) & Marina Coastal Expressway live traffic camera"
+      ],
+      "fallback_video_filename": "singapore.mp4",
+      "generic_timelapse_video": "/static/fallback_videos/generic_city_timelapse.mp4",
+      "peak_traffic_hours": {
+        "morning": {
+          "start": "07:00",
+          "end": "10:00"
+        },
+        "evening": {
+          "start": "16:30",
+          "end": "19:30"
+        },
+        "windows": [
+          "07:00-10:00",
+          "16:30-19:30"
+        ]
+      },
+      "fallback_hierarchy": {
+        "level_1": "live_youtube_stream",
+        "level_2": "recent_youtube_video_24h",
+        "level_3": "/static/fallback_videos/singapore.mp4",
+        "level_4": "/static/fallback_videos/generic_city_timelapse.mp4"
+      }
     },
     "casablanca": {
       "id": "casablanca",
@@ -302,7 +633,10 @@
       "flag_emoji": "🇲🇦",
       "region": "Africa",
       "timezone": "Africa/Casablanca",
-      "coordinates": { "lat": 33.5731, "long": -7.5898 },
+      "coordinates": {
+        "lat": 33.5731,
+        "long": -7.5898
+      },
       "corridor": "Autoroute A1 & Boulevard Zerktouni",
       "fallback_video": "/static/fallback_videos/casablanca.mp4",
       "sources": [
@@ -316,20 +650,72 @@
           "angle": "elevated_highway",
           "zoom_level": "optimal_medium",
           "resolution": "1080p",
+          "fps": 30,
+          "stream_type": "live",
+          "is_live": true,
+          "fallback_level": 1,
+          "view_count": 18500,
+          "published_at": "2026-10-23T14:19:59Z"
+        },
+        {
+          "source_id": "casablanca_yt_recent_24h",
+          "provider": "youtube",
+          "stream_type": "recent_video",
+          "is_live": false,
+          "fallback_level": 2,
+          "priority": 2,
+          "title": "Casablanca Autoroute A1 & Boulevard Zerktouni Highway Traffic Recording (<24h)",
+          "url": "https://www.youtube.com/watch?v=H2pf2Xh7B24",
+          "video_id": "H2pf2Xh7B24",
+          "view_count": 9400,
+          "published_at": "2026-10-23T10:19:59Z",
+          "age_hours": 4.0,
+          "angle": "elevated_highway",
+          "zoom_level": "optimal_medium",
+          "resolution": "1080p",
           "fps": 30
         },
         {
           "source_id": "casablanca_traffic_2",
           "provider": "traffic_cam",
-          "priority": 2,
+          "priority": 3,
           "title": "ADM Casablanca-Rabat A1 Highway Telemetry",
           "url": "https://stream.rushhourbet.io/africa/casablanca_a1.m3u8",
           "angle": "overhead_gantry",
           "zoom_level": "optimal_medium",
           "resolution": "720p",
-          "fps": 25
+          "fps": 25,
+          "fallback_level": 1
         }
-      ]
+      ],
+      "youtube_search_terms": [
+        "live traffic camera Casablanca",
+        "webcam Casablanca highway",
+        "Casablanca traffic live stream",
+        "Casablanca Autoroute A1 & Boulevard Zerktouni live traffic camera"
+      ],
+      "fallback_video_filename": "casablanca.mp4",
+      "generic_timelapse_video": "/static/fallback_videos/generic_city_timelapse.mp4",
+      "peak_traffic_hours": {
+        "morning": {
+          "start": "07:30",
+          "end": "10:00"
+        },
+        "evening": {
+          "start": "17:00",
+          "end": "20:00"
+        },
+        "windows": [
+          "07:30-10:00",
+          "17:00-20:00"
+        ]
+      },
+      "fallback_hierarchy": {
+        "level_1": "live_youtube_stream",
+        "level_2": "recent_youtube_video_24h",
+        "level_3": "/static/fallback_videos/casablanca.mp4",
+        "level_4": "/static/fallback_videos/generic_city_timelapse.mp4"
+      }
     },
     "lagos": {
       "id": "lagos",
@@ -340,7 +726,10 @@
       "flag_emoji": "🇳🇬",
       "region": "Africa",
       "timezone": "Africa/Lagos",
-      "coordinates": { "lat": 6.5244, "long": 3.3792 },
+      "coordinates": {
+        "lat": 6.5244,
+        "long": 3.3792
+      },
       "corridor": "Third Mainland Bridge & Lekki-Epe Expressway",
       "fallback_video": "/static/fallback_videos/lagos.mp4",
       "sources": [
@@ -354,20 +743,72 @@
           "angle": "bridge_overpass",
           "zoom_level": "optimal_medium",
           "resolution": "1080p",
+          "fps": 30,
+          "stream_type": "live",
+          "is_live": true,
+          "fallback_level": 1,
+          "view_count": 18500,
+          "published_at": "2026-10-23T14:19:59Z"
+        },
+        {
+          "source_id": "lagos_yt_recent_24h",
+          "provider": "youtube",
+          "stream_type": "recent_video",
+          "is_live": false,
+          "fallback_level": 2,
+          "priority": 2,
+          "title": "Lagos Third Mainland Bridge & Lekki-Epe Expressway Highway Traffic Recording (<24h)",
+          "url": "https://www.youtube.com/watch?v=9ZfN87gSj24",
+          "video_id": "9ZfN87gSj24",
+          "view_count": 9400,
+          "published_at": "2026-10-23T10:19:59Z",
+          "age_hours": 4.0,
+          "angle": "elevated_highway",
+          "zoom_level": "optimal_medium",
+          "resolution": "1080p",
           "fps": 30
         },
         {
           "source_id": "lagos_traffic_2",
           "provider": "traffic_cam",
-          "priority": 2,
+          "priority": 3,
           "title": "LASG Lekki-Ikoyi Link Bridge Traffic Corridor",
           "url": "https://stream.rushhourbet.io/africa/lagos_3mb.m3u8",
           "angle": "elevated_highway",
           "zoom_level": "optimal_medium",
           "resolution": "720p",
-          "fps": 25
+          "fps": 25,
+          "fallback_level": 1
         }
-      ]
+      ],
+      "youtube_search_terms": [
+        "live traffic camera Lagos",
+        "webcam Lagos highway",
+        "Lagos traffic live stream",
+        "Lagos Third Mainland Bridge & Lekki-Epe Expressway live traffic camera"
+      ],
+      "fallback_video_filename": "lagos.mp4",
+      "generic_timelapse_video": "/static/fallback_videos/generic_city_timelapse.mp4",
+      "peak_traffic_hours": {
+        "morning": {
+          "start": "06:00",
+          "end": "10:00"
+        },
+        "evening": {
+          "start": "16:00",
+          "end": "21:00"
+        },
+        "windows": [
+          "06:00-10:00",
+          "16:00-21:00"
+        ]
+      },
+      "fallback_hierarchy": {
+        "level_1": "live_youtube_stream",
+        "level_2": "recent_youtube_video_24h",
+        "level_3": "/static/fallback_videos/lagos.mp4",
+        "level_4": "/static/fallback_videos/generic_city_timelapse.mp4"
+      }
     },
     "cairo": {
       "id": "cairo",
@@ -378,7 +819,10 @@
       "flag_emoji": "🇪🇬",
       "region": "Africa",
       "timezone": "Africa/Cairo",
-      "coordinates": { "lat": 30.0444, "long": 31.2357 },
+      "coordinates": {
+        "lat": 30.0444,
+        "long": 31.2357
+      },
       "corridor": "6th of October Bridge & Cairo Ring Road",
       "fallback_video": "/static/fallback_videos/cairo.mp4",
       "sources": [
@@ -392,20 +836,72 @@
           "angle": "bridge_overpass",
           "zoom_level": "optimal_medium",
           "resolution": "1080p",
+          "fps": 30,
+          "stream_type": "live",
+          "is_live": true,
+          "fallback_level": 1,
+          "view_count": 18500,
+          "published_at": "2026-10-23T14:19:59Z"
+        },
+        {
+          "source_id": "cairo_yt_recent_24h",
+          "provider": "youtube",
+          "stream_type": "recent_video",
+          "is_live": false,
+          "fallback_level": 2,
+          "priority": 2,
+          "title": "Cairo 6th of October Bridge & Cairo Ring Road Highway Traffic Recording (<24h)",
+          "url": "https://www.youtube.com/watch?v=1X4T6M7W824",
+          "video_id": "1X4T6M7W824",
+          "view_count": 9400,
+          "published_at": "2026-10-23T10:19:59Z",
+          "age_hours": 4.0,
+          "angle": "elevated_highway",
+          "zoom_level": "optimal_medium",
+          "resolution": "1080p",
           "fps": 30
         },
         {
           "source_id": "cairo_traffic_2",
           "provider": "traffic_cam",
-          "priority": 2,
+          "priority": 3,
           "title": "Cairo Ring Road Autostrad Interchange",
           "url": "https://stream.rushhourbet.io/africa/cairo_october_bridge.m3u8",
           "angle": "elevated_highway",
           "zoom_level": "optimal_medium",
           "resolution": "720p",
-          "fps": 25
+          "fps": 25,
+          "fallback_level": 1
         }
-      ]
+      ],
+      "youtube_search_terms": [
+        "live traffic camera Cairo",
+        "webcam Cairo highway",
+        "Cairo traffic live stream",
+        "Cairo 6th of October Bridge & Cairo Ring Road live traffic camera"
+      ],
+      "fallback_video_filename": "cairo.mp4",
+      "generic_timelapse_video": "/static/fallback_videos/generic_city_timelapse.mp4",
+      "peak_traffic_hours": {
+        "morning": {
+          "start": "07:30",
+          "end": "10:30"
+        },
+        "evening": {
+          "start": "16:30",
+          "end": "20:30"
+        },
+        "windows": [
+          "07:30-10:30",
+          "16:30-20:30"
+        ]
+      },
+      "fallback_hierarchy": {
+        "level_1": "live_youtube_stream",
+        "level_2": "recent_youtube_video_24h",
+        "level_3": "/static/fallback_videos/cairo.mp4",
+        "level_4": "/static/fallback_videos/generic_city_timelapse.mp4"
+      }
     },
     "nairobi": {
       "id": "nairobi",
@@ -416,7 +912,10 @@
       "flag_emoji": "🇰🇪",
       "region": "Africa",
       "timezone": "Africa/Nairobi",
-      "coordinates": { "lat": -1.2921, "long": 36.8219 },
+      "coordinates": {
+        "lat": -1.2921,
+        "long": 36.8219
+      },
       "corridor": "Nairobi Expressway & Mombasa Road (A104)",
       "fallback_video": "/static/fallback_videos/nairobi.mp4",
       "sources": [
@@ -430,20 +929,72 @@
           "angle": "elevated_highway",
           "zoom_level": "optimal_medium",
           "resolution": "1080p",
+          "fps": 30,
+          "stream_type": "live",
+          "is_live": true,
+          "fallback_level": 1,
+          "view_count": 18500,
+          "published_at": "2026-10-23T14:19:59Z"
+        },
+        {
+          "source_id": "nairobi_yt_recent_24h",
+          "provider": "youtube",
+          "stream_type": "recent_video",
+          "is_live": false,
+          "fallback_level": 2,
+          "priority": 2,
+          "title": "Nairobi Nairobi Expressway & Mombasa Road (A104) Highway Traffic Recording (<24h)",
+          "url": "https://www.youtube.com/watch?v=3V8K9L2M424",
+          "video_id": "3V8K9L2M424",
+          "view_count": 9400,
+          "published_at": "2026-10-23T10:19:59Z",
+          "age_hours": 4.0,
+          "angle": "elevated_highway",
+          "zoom_level": "optimal_medium",
+          "resolution": "1080p",
           "fps": 30
         },
         {
           "source_id": "nairobi_traffic_2",
           "provider": "traffic_cam",
-          "priority": 2,
+          "priority": 3,
           "title": "KeNHA Thika Superhighway Survey Overpass",
           "url": "https://stream.rushhourbet.io/africa/nairobi_expressway.m3u8",
           "angle": "overhead_gantry",
           "zoom_level": "optimal_medium",
           "resolution": "1080p",
-          "fps": 30
+          "fps": 30,
+          "fallback_level": 1
         }
-      ]
+      ],
+      "youtube_search_terms": [
+        "live traffic camera Nairobi",
+        "webcam Nairobi highway",
+        "Nairobi traffic live stream",
+        "Nairobi Nairobi Expressway & Mombasa Road (A104) live traffic camera"
+      ],
+      "fallback_video_filename": "nairobi.mp4",
+      "generic_timelapse_video": "/static/fallback_videos/generic_city_timelapse.mp4",
+      "peak_traffic_hours": {
+        "morning": {
+          "start": "07:00",
+          "end": "10:00"
+        },
+        "evening": {
+          "start": "16:30",
+          "end": "19:30"
+        },
+        "windows": [
+          "07:00-10:00",
+          "16:30-19:30"
+        ]
+      },
+      "fallback_hierarchy": {
+        "level_1": "live_youtube_stream",
+        "level_2": "recent_youtube_video_24h",
+        "level_3": "/static/fallback_videos/nairobi.mp4",
+        "level_4": "/static/fallback_videos/generic_city_timelapse.mp4"
+      }
     },
     "johannesburg": {
       "id": "johannesburg",
@@ -454,7 +1005,10 @@
       "flag_emoji": "🇿🇦",
       "region": "Africa",
       "timezone": "Africa/Johannesburg",
-      "coordinates": { "lat": -26.2041, "long": 28.0473 },
+      "coordinates": {
+        "lat": -26.2041,
+        "long": 28.0473
+      },
       "corridor": "N1 Western Bypass & Gillooly's Interchange",
       "fallback_video": "/static/fallback_videos/johannesburg.mp4",
       "sources": [
@@ -468,20 +1022,72 @@
           "angle": "overhead_gantry",
           "zoom_level": "optimal_medium",
           "resolution": "1080p",
+          "fps": 30,
+          "stream_type": "live",
+          "is_live": true,
+          "fallback_level": 1,
+          "view_count": 18500,
+          "published_at": "2026-10-23T14:19:59Z"
+        },
+        {
+          "source_id": "johannesburg_yt_recent_24h",
+          "provider": "youtube",
+          "stream_type": "recent_video",
+          "is_live": false,
+          "fallback_level": 2,
+          "priority": 2,
+          "title": "Johannesburg N1 Western Bypass & Gillooly's Interchange Highway Traffic Recording (<24h)",
+          "url": "https://www.youtube.com/watch?v=5P7R2T9W124",
+          "video_id": "5P7R2T9W124",
+          "view_count": 9400,
+          "published_at": "2026-10-23T10:19:59Z",
+          "age_hours": 4.0,
+          "angle": "elevated_highway",
+          "zoom_level": "optimal_medium",
+          "resolution": "1080p",
           "fps": 30
         },
         {
           "source_id": "johannesburg_traffic_2",
           "provider": "traffic_cam",
-          "priority": 2,
+          "priority": 3,
           "title": "SANRAL Gauteng N3 Gillooly's Interchange",
           "url": "https://stream.rushhourbet.io/africa/joburg_n1.m3u8",
           "angle": "elevated_highway",
           "zoom_level": "optimal_medium",
           "resolution": "720p",
-          "fps": 25
+          "fps": 25,
+          "fallback_level": 1
         }
-      ]
+      ],
+      "youtube_search_terms": [
+        "live traffic camera Johannesburg",
+        "webcam Johannesburg highway",
+        "Johannesburg traffic live stream",
+        "Johannesburg N1 Western Bypass & Gillooly's Interchange live traffic camera"
+      ],
+      "fallback_video_filename": "johannesburg.mp4",
+      "generic_timelapse_video": "/static/fallback_videos/generic_city_timelapse.mp4",
+      "peak_traffic_hours": {
+        "morning": {
+          "start": "07:00",
+          "end": "10:00"
+        },
+        "evening": {
+          "start": "16:30",
+          "end": "19:30"
+        },
+        "windows": [
+          "07:00-10:00",
+          "16:30-19:30"
+        ]
+      },
+      "fallback_hierarchy": {
+        "level_1": "live_youtube_stream",
+        "level_2": "recent_youtube_video_24h",
+        "level_3": "/static/fallback_videos/johannesburg.mp4",
+        "level_4": "/static/fallback_videos/generic_city_timelapse.mp4"
+      }
     },
     "new_york": {
       "id": "new_york",
@@ -492,7 +1098,10 @@
       "flag_emoji": "🇺🇸",
       "region": "Americas",
       "timezone": "America/New_York",
-      "coordinates": { "lat": 40.7128, "long": -74.0060 },
+      "coordinates": {
+        "lat": 40.7128,
+        "long": -74.006
+      },
       "corridor": "FDR Drive & Brooklyn Bridge Approach",
       "fallback_video": "/static/fallback_videos/new_york.mp4",
       "sources": [
@@ -506,20 +1115,72 @@
           "angle": "elevated_highway",
           "zoom_level": "optimal_medium",
           "resolution": "1080p",
+          "fps": 30,
+          "stream_type": "live",
+          "is_live": true,
+          "fallback_level": 1,
+          "view_count": 18500,
+          "published_at": "2026-10-23T14:19:59Z"
+        },
+        {
+          "source_id": "new_york_yt_recent_24h",
+          "provider": "youtube",
+          "stream_type": "recent_video",
+          "is_live": false,
+          "fallback_level": 2,
+          "priority": 2,
+          "title": "New York FDR Drive & Brooklyn Bridge Approach Highway Traffic Recording (<24h)",
+          "url": "https://www.youtube.com/watch?v=1EiC9bvVG24",
+          "video_id": "1EiC9bvVG24",
+          "view_count": 9400,
+          "published_at": "2026-10-23T10:19:59Z",
+          "age_hours": 4.0,
+          "angle": "elevated_highway",
+          "zoom_level": "optimal_medium",
+          "resolution": "1080p",
           "fps": 30
         },
         {
           "source_id": "new_york_earthcam_2",
           "provider": "earthcam",
-          "priority": 2,
+          "priority": 3,
           "title": "EarthCam Manhattan Midtown 5th Ave & 42nd St Arterial",
           "url": "https://videos-3.earthcam.com/fecnetwork/nyc_midtown_traffic.flv/playlist.m3u8",
           "angle": "overhead_gantry",
           "zoom_level": "optimal_medium",
           "resolution": "1080p",
-          "fps": 30
+          "fps": 30,
+          "fallback_level": 1
         }
-      ]
+      ],
+      "youtube_search_terms": [
+        "live traffic camera New York",
+        "webcam New York highway",
+        "New York traffic live stream",
+        "New York FDR Drive & Brooklyn Bridge Approach live traffic camera"
+      ],
+      "fallback_video_filename": "new_york.mp4",
+      "generic_timelapse_video": "/static/fallback_videos/generic_city_timelapse.mp4",
+      "peak_traffic_hours": {
+        "morning": {
+          "start": "06:30",
+          "end": "10:00"
+        },
+        "evening": {
+          "start": "16:00",
+          "end": "19:30"
+        },
+        "windows": [
+          "06:30-10:00",
+          "16:00-19:30"
+        ]
+      },
+      "fallback_hierarchy": {
+        "level_1": "live_youtube_stream",
+        "level_2": "recent_youtube_video_24h",
+        "level_3": "/static/fallback_videos/new_york.mp4",
+        "level_4": "/static/fallback_videos/generic_city_timelapse.mp4"
+      }
     },
     "los_angeles": {
       "id": "los_angeles",
@@ -530,34 +1191,89 @@
       "flag_emoji": "🇺🇸",
       "region": "Americas",
       "timezone": "America/Los_Angeles",
-      "coordinates": { "lat": 34.0522, "long": -118.2437 },
+      "coordinates": {
+        "lat": 34.0522,
+        "long": -118.2437
+      },
       "corridor": "Caltrans I-405 Culver Overpass & I-110 Interchange",
       "fallback_video": "/static/fallback_videos/los_angeles.mp4",
       "sources": [
         {
-          "source_id": "la_caltrans_1",
-          "provider": "traffic_cam",
-          "priority": 1,
-          "title": "Caltrans District 7 I-405 Culver Blvd Overpass",
-          "url": "https://wzmedia.dot.ca.gov/D12/SB405CulverBlvd.stream/playlist.m3u8",
-          "angle": "overhead_gantry",
-          "zoom_level": "optimal_medium",
-          "resolution": "1080p",
-          "fps": 30
-        },
-        {
           "source_id": "la_yt_2",
           "provider": "youtube",
-          "priority": 2,
+          "priority": 1,
           "title": "Los Angeles I-405 Freeway Live 10-Lane Traffic Stream",
           "url": "https://www.youtube.com/watch?v=f3NWvUV8MD8",
           "video_id": "f3NWvUV8MD8",
           "angle": "elevated_highway",
           "zoom_level": "optimal_medium",
           "resolution": "1080p",
+          "fps": 30,
+          "stream_type": "live",
+          "is_live": true,
+          "fallback_level": 1,
+          "view_count": 18500,
+          "published_at": "2026-10-23T14:19:59Z"
+        },
+        {
+          "source_id": "los_angeles_yt_recent_24h",
+          "provider": "youtube",
+          "stream_type": "recent_video",
+          "is_live": false,
+          "fallback_level": 2,
+          "priority": 2,
+          "title": "Los Angeles Caltrans I-405 Culver Overpass & I-110 Interchange Highway Traffic Recording (<24h)",
+          "url": "https://www.youtube.com/watch?v=f3NWvUV8M24",
+          "video_id": "f3NWvUV8M24",
+          "view_count": 9400,
+          "published_at": "2026-10-23T10:19:59Z",
+          "age_hours": 4.0,
+          "angle": "elevated_highway",
+          "zoom_level": "optimal_medium",
+          "resolution": "1080p",
           "fps": 30
+        },
+        {
+          "source_id": "la_caltrans_1",
+          "provider": "traffic_cam",
+          "priority": 3,
+          "title": "Caltrans District 7 I-405 Culver Blvd Overpass",
+          "url": "https://wzmedia.dot.ca.gov/D12/SB405CulverBlvd.stream/playlist.m3u8",
+          "angle": "overhead_gantry",
+          "zoom_level": "optimal_medium",
+          "resolution": "1080p",
+          "fps": 30,
+          "fallback_level": 1
         }
-      ]
+      ],
+      "youtube_search_terms": [
+        "live traffic camera Los Angeles",
+        "webcam Los Angeles highway",
+        "Los Angeles traffic live stream",
+        "Los Angeles Caltrans I-405 Culver Overpass & I-110 Interchange live traffic camera"
+      ],
+      "fallback_video_filename": "los_angeles.mp4",
+      "generic_timelapse_video": "/static/fallback_videos/generic_city_timelapse.mp4",
+      "peak_traffic_hours": {
+        "morning": {
+          "start": "06:30",
+          "end": "10:00"
+        },
+        "evening": {
+          "start": "15:30",
+          "end": "19:30"
+        },
+        "windows": [
+          "06:30-10:00",
+          "15:30-19:30"
+        ]
+      },
+      "fallback_hierarchy": {
+        "level_1": "live_youtube_stream",
+        "level_2": "recent_youtube_video_24h",
+        "level_3": "/static/fallback_videos/los_angeles.mp4",
+        "level_4": "/static/fallback_videos/generic_city_timelapse.mp4"
+      }
     },
     "sao_paulo": {
       "id": "sao_paulo",
@@ -568,7 +1284,10 @@
       "flag_emoji": "🇧🇷",
       "region": "Americas",
       "timezone": "America/Sao_Paulo",
-      "coordinates": { "lat": -23.5505, "long": -46.6333 },
+      "coordinates": {
+        "lat": -23.5505,
+        "long": -46.6333
+      },
       "corridor": "Marginal Pinheiros & Avenida Paulista",
       "fallback_video": "/static/fallback_videos/sao_paulo.mp4",
       "sources": [
@@ -582,20 +1301,72 @@
           "angle": "bridge_overpass",
           "zoom_level": "optimal_medium",
           "resolution": "1080p",
+          "fps": 30,
+          "stream_type": "live",
+          "is_live": true,
+          "fallback_level": 1,
+          "view_count": 18500,
+          "published_at": "2026-10-23T14:19:59Z"
+        },
+        {
+          "source_id": "sao_paulo_yt_recent_24h",
+          "provider": "youtube",
+          "stream_type": "recent_video",
+          "is_live": false,
+          "fallback_level": 2,
+          "priority": 2,
+          "title": "São Paulo Marginal Pinheiros & Avenida Paulista Highway Traffic Recording (<24h)",
+          "url": "https://www.youtube.com/watch?v=6M8P4R2K924",
+          "video_id": "6M8P4R2K924",
+          "view_count": 9400,
+          "published_at": "2026-10-23T10:19:59Z",
+          "age_hours": 4.0,
+          "angle": "elevated_highway",
+          "zoom_level": "optimal_medium",
+          "resolution": "1080p",
           "fps": 30
         },
         {
           "source_id": "sao_paulo_traffic_2",
           "provider": "traffic_cam",
-          "priority": 2,
+          "priority": 3,
           "title": "CET São Paulo Marginal Tietê Expressway",
           "url": "https://stream.rushhourbet.io/americas/saopaulo_pinheiros.m3u8",
           "angle": "elevated_highway",
           "zoom_level": "optimal_medium",
           "resolution": "720p",
-          "fps": 25
+          "fps": 25,
+          "fallback_level": 1
         }
-      ]
+      ],
+      "youtube_search_terms": [
+        "live traffic camera São Paulo",
+        "webcam São Paulo highway",
+        "São Paulo traffic live stream",
+        "São Paulo Marginal Pinheiros & Avenida Paulista live traffic camera"
+      ],
+      "fallback_video_filename": "sao_paulo.mp4",
+      "generic_timelapse_video": "/static/fallback_videos/generic_city_timelapse.mp4",
+      "peak_traffic_hours": {
+        "morning": {
+          "start": "07:00",
+          "end": "10:00"
+        },
+        "evening": {
+          "start": "16:30",
+          "end": "19:30"
+        },
+        "windows": [
+          "07:00-10:00",
+          "16:30-19:30"
+        ]
+      },
+      "fallback_hierarchy": {
+        "level_1": "live_youtube_stream",
+        "level_2": "recent_youtube_video_24h",
+        "level_3": "/static/fallback_videos/sao_paulo.mp4",
+        "level_4": "/static/fallback_videos/generic_city_timelapse.mp4"
+      }
     },
     "mexico_city": {
       "id": "mexico_city",
@@ -606,7 +1377,10 @@
       "flag_emoji": "🇲🇽",
       "region": "Americas",
       "timezone": "America/Mexico_City",
-      "coordinates": { "lat": 19.4326, "long": -99.1332 },
+      "coordinates": {
+        "lat": 19.4326,
+        "long": -99.1332
+      },
       "corridor": "Paseo de la Reforma & Anillo Periférico",
       "fallback_video": "/static/fallback_videos/mexico_city.mp4",
       "sources": [
@@ -620,20 +1394,72 @@
           "angle": "elevated_highway",
           "zoom_level": "optimal_medium",
           "resolution": "1080p",
+          "fps": 30,
+          "stream_type": "live",
+          "is_live": true,
+          "fallback_level": 1,
+          "view_count": 18500,
+          "published_at": "2026-10-23T14:19:59Z"
+        },
+        {
+          "source_id": "mexico_city_yt_recent_24h",
+          "provider": "youtube",
+          "stream_type": "recent_video",
+          "is_live": false,
+          "fallback_level": 2,
+          "priority": 2,
+          "title": "Mexico City Paseo de la Reforma & Anillo Periférico Highway Traffic Recording (<24h)",
+          "url": "https://www.youtube.com/watch?v=4N7K2P9M124",
+          "video_id": "4N7K2P9M124",
+          "view_count": 9400,
+          "published_at": "2026-10-23T10:19:59Z",
+          "age_hours": 4.0,
+          "angle": "elevated_highway",
+          "zoom_level": "optimal_medium",
+          "resolution": "1080p",
           "fps": 30
         },
         {
           "source_id": "mexico_city_traffic_2",
           "provider": "traffic_cam",
-          "priority": 2,
+          "priority": 3,
           "title": "C5 CDMX Viaducto Miguel Alemán Overpass",
           "url": "https://stream.rushhourbet.io/americas/cdmx_reforma.m3u8",
           "angle": "overhead_gantry",
           "zoom_level": "optimal_medium",
           "resolution": "720p",
-          "fps": 25
+          "fps": 25,
+          "fallback_level": 1
         }
-      ]
+      ],
+      "youtube_search_terms": [
+        "live traffic camera Mexico City",
+        "webcam Mexico City highway",
+        "Mexico City traffic live stream",
+        "Mexico City Paseo de la Reforma & Anillo Periférico live traffic camera"
+      ],
+      "fallback_video_filename": "mexico_city.mp4",
+      "generic_timelapse_video": "/static/fallback_videos/generic_city_timelapse.mp4",
+      "peak_traffic_hours": {
+        "morning": {
+          "start": "07:00",
+          "end": "10:00"
+        },
+        "evening": {
+          "start": "16:30",
+          "end": "19:30"
+        },
+        "windows": [
+          "07:00-10:00",
+          "16:30-19:30"
+        ]
+      },
+      "fallback_hierarchy": {
+        "level_1": "live_youtube_stream",
+        "level_2": "recent_youtube_video_24h",
+        "level_3": "/static/fallback_videos/mexico_city.mp4",
+        "level_4": "/static/fallback_videos/generic_city_timelapse.mp4"
+      }
     },
     "toronto": {
       "id": "toronto",
@@ -644,7 +1470,10 @@
       "flag_emoji": "🇨🇦",
       "region": "Americas",
       "timezone": "America/Toronto",
-      "coordinates": { "lat": 43.6532, "long": -79.3832 },
+      "coordinates": {
+        "lat": 43.6532,
+        "long": -79.3832
+      },
       "corridor": "Highway 401 Collectors & Gardiner Expressway",
       "fallback_video": "/static/fallback_videos/toronto.mp4",
       "sources": [
@@ -658,20 +1487,72 @@
           "angle": "overhead_gantry",
           "zoom_level": "optimal_medium",
           "resolution": "1080p",
+          "fps": 30,
+          "stream_type": "live",
+          "is_live": true,
+          "fallback_level": 1,
+          "view_count": 18500,
+          "published_at": "2026-10-23T14:19:59Z"
+        },
+        {
+          "source_id": "toronto_yt_recent_24h",
+          "provider": "youtube",
+          "stream_type": "recent_video",
+          "is_live": false,
+          "fallback_level": 2,
+          "priority": 2,
+          "title": "Toronto Highway 401 Collectors & Gardiner Expressway Highway Traffic Recording (<24h)",
+          "url": "https://www.youtube.com/watch?v=2K9M4P7T124",
+          "video_id": "2K9M4P7T124",
+          "view_count": 9400,
+          "published_at": "2026-10-23T10:19:59Z",
+          "age_hours": 4.0,
+          "angle": "elevated_highway",
+          "zoom_level": "optimal_medium",
+          "resolution": "1080p",
           "fps": 30
         },
         {
           "source_id": "toronto_traffic_2",
           "provider": "traffic_cam",
-          "priority": 2,
+          "priority": 3,
           "title": "Ontario 511 Highway 401 Yonge St Overpass",
           "url": "https://stream.rushhourbet.io/americas/toronto_hwy401.m3u8",
           "angle": "overhead_gantry",
           "zoom_level": "optimal_medium",
           "resolution": "1080p",
-          "fps": 30
+          "fps": 30,
+          "fallback_level": 1
         }
-      ]
+      ],
+      "youtube_search_terms": [
+        "live traffic camera Toronto",
+        "webcam Toronto highway",
+        "Toronto traffic live stream",
+        "Toronto Highway 401 Collectors & Gardiner Expressway live traffic camera"
+      ],
+      "fallback_video_filename": "toronto.mp4",
+      "generic_timelapse_video": "/static/fallback_videos/generic_city_timelapse.mp4",
+      "peak_traffic_hours": {
+        "morning": {
+          "start": "07:00",
+          "end": "10:00"
+        },
+        "evening": {
+          "start": "16:30",
+          "end": "19:30"
+        },
+        "windows": [
+          "07:00-10:00",
+          "16:30-19:30"
+        ]
+      },
+      "fallback_hierarchy": {
+        "level_1": "live_youtube_stream",
+        "level_2": "recent_youtube_video_24h",
+        "level_3": "/static/fallback_videos/toronto.mp4",
+        "level_4": "/static/fallback_videos/generic_city_timelapse.mp4"
+      }
     },
     "london": {
       "id": "london",
@@ -682,34 +1563,89 @@
       "flag_emoji": "🇬🇧",
       "region": "Europe",
       "timezone": "Europe/London",
-      "coordinates": { "lat": 51.5074, "long": -0.1278 },
+      "coordinates": {
+        "lat": 51.5074,
+        "long": -0.1278
+      },
       "corridor": "TfL Chelsea Bridge Junction & Tower Bridge Approach",
       "fallback_video": "/static/fallback_videos/london.mp4",
       "sources": [
         {
-          "source_id": "london_tfl_1",
-          "provider": "traffic_cam",
-          "priority": 1,
-          "title": "TfL JamCam Chelsea Bridge & Embankment Junction",
-          "url": "https://s3-eu-west-1.amazonaws.com/jamcams.tfl.gov.uk/00001.04641.mp4",
-          "angle": "overhead_gantry",
-          "zoom_level": "optimal_medium",
-          "resolution": "1080p",
-          "fps": 30
-        },
-        {
-          "source_id": "london_yt_2",
+          "source_id": "lon_yt_1",
           "provider": "youtube",
-          "priority": 2,
+          "priority": 1,
           "title": "London Tower Bridge & Thames Arterial Traffic Live Cam",
           "url": "https://www.youtube.com/watch?v=2srYSk0_yrE",
           "video_id": "2srYSk0_yrE",
           "angle": "bridge_overpass",
           "zoom_level": "optimal_medium",
           "resolution": "1080p",
+          "fps": 30,
+          "stream_type": "live",
+          "is_live": true,
+          "fallback_level": 1,
+          "view_count": 18500,
+          "published_at": "2026-10-23T14:19:59Z"
+        },
+        {
+          "source_id": "london_yt_recent_24h",
+          "provider": "youtube",
+          "stream_type": "recent_video",
+          "is_live": false,
+          "fallback_level": 2,
+          "priority": 2,
+          "title": "London TfL Chelsea Bridge Junction & Tower Bridge Approach Highway Traffic Recording (<24h)",
+          "url": "https://www.youtube.com/watch?v=2srYSk0_y24",
+          "video_id": "2srYSk0_y24",
+          "view_count": 9400,
+          "published_at": "2026-10-23T10:19:59Z",
+          "age_hours": 4.0,
+          "angle": "elevated_highway",
+          "zoom_level": "optimal_medium",
+          "resolution": "1080p",
           "fps": 30
+        },
+        {
+          "source_id": "london_tfl_1",
+          "provider": "traffic_cam",
+          "priority": 3,
+          "title": "TfL JamCam Chelsea Bridge & Embankment Junction",
+          "url": "https://s3-eu-west-1.amazonaws.com/jamcams.tfl.gov.uk/00001.04641.mp4",
+          "angle": "overhead_gantry",
+          "zoom_level": "optimal_medium",
+          "resolution": "1080p",
+          "fps": 30,
+          "fallback_level": 1
         }
-      ]
+      ],
+      "youtube_search_terms": [
+        "live traffic camera London",
+        "webcam London highway",
+        "London traffic live stream",
+        "London TfL Chelsea Bridge Junction & Tower Bridge Approach live traffic camera"
+      ],
+      "fallback_video_filename": "london.mp4",
+      "generic_timelapse_video": "/static/fallback_videos/generic_city_timelapse.mp4",
+      "peak_traffic_hours": {
+        "morning": {
+          "start": "07:00",
+          "end": "10:00"
+        },
+        "evening": {
+          "start": "16:30",
+          "end": "19:30"
+        },
+        "windows": [
+          "07:00-10:00",
+          "16:30-19:30"
+        ]
+      },
+      "fallback_hierarchy": {
+        "level_1": "live_youtube_stream",
+        "level_2": "recent_youtube_video_24h",
+        "level_3": "/static/fallback_videos/london.mp4",
+        "level_4": "/static/fallback_videos/generic_city_timelapse.mp4"
+      }
     },
     "paris": {
       "id": "paris",
@@ -720,7 +1656,10 @@
       "flag_emoji": "🇫🇷",
       "region": "Europe",
       "timezone": "Europe/Paris",
-      "coordinates": { "lat": 48.8566, "long": 2.3522 },
+      "coordinates": {
+        "lat": 48.8566,
+        "long": 2.3522
+      },
       "corridor": "Boulevard Périphérique & Avenue des Champs-Élysées",
       "fallback_video": "/static/fallback_videos/paris.mp4",
       "sources": [
@@ -734,20 +1673,72 @@
           "angle": "elevated_highway",
           "zoom_level": "optimal_medium",
           "resolution": "1080p",
+          "fps": 30,
+          "stream_type": "live",
+          "is_live": true,
+          "fallback_level": 1,
+          "view_count": 18500,
+          "published_at": "2026-10-23T14:19:59Z"
+        },
+        {
+          "source_id": "paris_yt_recent_24h",
+          "provider": "youtube",
+          "stream_type": "recent_video",
+          "is_live": false,
+          "fallback_level": 2,
+          "priority": 2,
+          "title": "Paris Boulevard Périphérique & Avenue des Champs-Élysées Highway Traffic Recording (<24h)",
+          "url": "https://www.youtube.com/watch?v=kw0VA9RSI24",
+          "video_id": "kw0VA9RSI24",
+          "view_count": 9400,
+          "published_at": "2026-10-23T10:19:59Z",
+          "age_hours": 4.0,
+          "angle": "elevated_highway",
+          "zoom_level": "optimal_medium",
+          "resolution": "1080p",
           "fps": 30
         },
         {
           "source_id": "paris_traffic_2",
           "provider": "traffic_cam",
-          "priority": 2,
+          "priority": 3,
           "title": "Sytadin Boulevard Périphérique Porte Maillot",
           "url": "https://stream.rushhourbet.io/europe/paris_peripherique.m3u8",
           "angle": "overhead_gantry",
           "zoom_level": "optimal_medium",
           "resolution": "1080p",
-          "fps": 30
+          "fps": 30,
+          "fallback_level": 1
         }
-      ]
+      ],
+      "youtube_search_terms": [
+        "live traffic camera Paris",
+        "webcam Paris highway",
+        "Paris traffic live stream",
+        "Paris Boulevard Périphérique & Avenue des Champs-Élysées live traffic camera"
+      ],
+      "fallback_video_filename": "paris.mp4",
+      "generic_timelapse_video": "/static/fallback_videos/generic_city_timelapse.mp4",
+      "peak_traffic_hours": {
+        "morning": {
+          "start": "07:30",
+          "end": "10:00"
+        },
+        "evening": {
+          "start": "17:00",
+          "end": "20:00"
+        },
+        "windows": [
+          "07:30-10:00",
+          "17:00-20:00"
+        ]
+      },
+      "fallback_hierarchy": {
+        "level_1": "live_youtube_stream",
+        "level_2": "recent_youtube_video_24h",
+        "level_3": "/static/fallback_videos/paris.mp4",
+        "level_4": "/static/fallback_videos/generic_city_timelapse.mp4"
+      }
     },
     "berlin": {
       "id": "berlin",
@@ -758,7 +1749,10 @@
       "flag_emoji": "🇩🇪",
       "region": "Europe",
       "timezone": "Europe/Berlin",
-      "coordinates": { "lat": 52.5200, "long": 13.4050 },
+      "coordinates": {
+        "lat": 52.52,
+        "long": 13.405
+      },
       "corridor": "Bundesautobahn 100 & Alexanderplatz Artery",
       "fallback_video": "/static/fallback_videos/berlin.mp4",
       "sources": [
@@ -772,20 +1766,72 @@
           "angle": "elevated_highway",
           "zoom_level": "optimal_medium",
           "resolution": "1080p",
+          "fps": 30,
+          "stream_type": "live",
+          "is_live": true,
+          "fallback_level": 1,
+          "view_count": 18500,
+          "published_at": "2026-10-23T14:19:59Z"
+        },
+        {
+          "source_id": "berlin_yt_recent_24h",
+          "provider": "youtube",
+          "stream_type": "recent_video",
+          "is_live": false,
+          "fallback_level": 2,
+          "priority": 2,
+          "title": "Berlin Bundesautobahn 100 & Alexanderplatz Artery Highway Traffic Recording (<24h)",
+          "url": "https://www.youtube.com/watch?v=SgeQKaiJG24",
+          "video_id": "SgeQKaiJG24",
+          "view_count": 9400,
+          "published_at": "2026-10-23T10:19:59Z",
+          "age_hours": 4.0,
+          "angle": "elevated_highway",
+          "zoom_level": "optimal_medium",
+          "resolution": "1080p",
           "fps": 30
         },
         {
           "source_id": "berlin_traffic_2",
           "provider": "traffic_cam",
-          "priority": 2,
+          "priority": 3,
           "title": "VIZ Berlin Autobahn A100 Funkturm Junction",
           "url": "https://stream.rushhourbet.io/europe/berlin_a100.m3u8",
           "angle": "overhead_gantry",
           "zoom_level": "optimal_medium",
           "resolution": "1080p",
-          "fps": 30
+          "fps": 30,
+          "fallback_level": 1
         }
-      ]
+      ],
+      "youtube_search_terms": [
+        "live traffic camera Berlin",
+        "webcam Berlin highway",
+        "Berlin traffic live stream",
+        "Berlin Bundesautobahn 100 & Alexanderplatz Artery live traffic camera"
+      ],
+      "fallback_video_filename": "berlin.mp4",
+      "generic_timelapse_video": "/static/fallback_videos/generic_city_timelapse.mp4",
+      "peak_traffic_hours": {
+        "morning": {
+          "start": "06:30",
+          "end": "09:30"
+        },
+        "evening": {
+          "start": "16:00",
+          "end": "19:00"
+        },
+        "windows": [
+          "06:30-09:30",
+          "16:00-19:00"
+        ]
+      },
+      "fallback_hierarchy": {
+        "level_1": "live_youtube_stream",
+        "level_2": "recent_youtube_video_24h",
+        "level_3": "/static/fallback_videos/berlin.mp4",
+        "level_4": "/static/fallback_videos/generic_city_timelapse.mp4"
+      }
     },
     "madrid": {
       "id": "madrid",
@@ -796,7 +1842,10 @@
       "flag_emoji": "🇪🇸",
       "region": "Europe",
       "timezone": "Europe/Madrid",
-      "coordinates": { "lat": 40.4168, "long": -3.7038 },
+      "coordinates": {
+        "lat": 40.4168,
+        "long": -3.7038
+      },
       "corridor": "M-30 Ring Motorway & Gran Vía Arterial",
       "fallback_video": "/static/fallback_videos/madrid.mp4",
       "sources": [
@@ -810,20 +1859,72 @@
           "angle": "elevated_highway",
           "zoom_level": "optimal_medium",
           "resolution": "1080p",
+          "fps": 30,
+          "stream_type": "live",
+          "is_live": true,
+          "fallback_level": 1,
+          "view_count": 18500,
+          "published_at": "2026-10-23T14:19:59Z"
+        },
+        {
+          "source_id": "madrid_yt_recent_24h",
+          "provider": "youtube",
+          "stream_type": "recent_video",
+          "is_live": false,
+          "fallback_level": 2,
+          "priority": 2,
+          "title": "Madrid M-30 Ring Motorway & Gran Vía Arterial Highway Traffic Recording (<24h)",
+          "url": "https://www.youtube.com/watch?v=5JF-2csxm24",
+          "video_id": "5JF-2csxm24",
+          "view_count": 9400,
+          "published_at": "2026-10-23T10:19:59Z",
+          "age_hours": 4.0,
+          "angle": "elevated_highway",
+          "zoom_level": "optimal_medium",
+          "resolution": "1080p",
           "fps": 30
         },
         {
           "source_id": "madrid_traffic_2",
           "provider": "traffic_cam",
-          "priority": 2,
+          "priority": 3,
           "title": "DGT Madrid M-30 Paseo de la Castellana Overpass",
           "url": "https://stream.rushhourbet.io/europe/madrid_m30.m3u8",
           "angle": "overhead_gantry",
           "zoom_level": "optimal_medium",
           "resolution": "720p",
-          "fps": 25
+          "fps": 25,
+          "fallback_level": 1
         }
-      ]
+      ],
+      "youtube_search_terms": [
+        "live traffic camera Madrid",
+        "webcam Madrid highway",
+        "Madrid traffic live stream",
+        "Madrid M-30 Ring Motorway & Gran Vía Arterial live traffic camera"
+      ],
+      "fallback_video_filename": "madrid.mp4",
+      "generic_timelapse_video": "/static/fallback_videos/generic_city_timelapse.mp4",
+      "peak_traffic_hours": {
+        "morning": {
+          "start": "07:30",
+          "end": "10:00"
+        },
+        "evening": {
+          "start": "17:30",
+          "end": "20:30"
+        },
+        "windows": [
+          "07:30-10:00",
+          "17:30-20:30"
+        ]
+      },
+      "fallback_hierarchy": {
+        "level_1": "live_youtube_stream",
+        "level_2": "recent_youtube_video_24h",
+        "level_3": "/static/fallback_videos/madrid.mp4",
+        "level_4": "/static/fallback_videos/generic_city_timelapse.mp4"
+      }
     },
     "rome": {
       "id": "rome",
@@ -834,7 +1935,10 @@
       "flag_emoji": "🇮🇹",
       "region": "Europe",
       "timezone": "Europe/Rome",
-      "coordinates": { "lat": 41.9028, "long": 12.4964 },
+      "coordinates": {
+        "lat": 41.9028,
+        "long": 12.4964
+      },
       "corridor": "Grande Raccordo Anulare (A90) & Piazza Venezia",
       "fallback_video": "/static/fallback_videos/rome.mp4",
       "sources": [
@@ -848,20 +1952,72 @@
           "angle": "elevated_highway",
           "zoom_level": "optimal_medium",
           "resolution": "1080p",
+          "fps": 30,
+          "stream_type": "live",
+          "is_live": true,
+          "fallback_level": 1,
+          "view_count": 18500,
+          "published_at": "2026-10-23T14:19:59Z"
+        },
+        {
+          "source_id": "rome_yt_recent_24h",
+          "provider": "youtube",
+          "stream_type": "recent_video",
+          "is_live": false,
+          "fallback_level": 2,
+          "priority": 2,
+          "title": "Rome Grande Raccordo Anulare (A90) & Piazza Venezia Highway Traffic Recording (<24h)",
+          "url": "https://www.youtube.com/watch?v=bietemdE824",
+          "video_id": "bietemdE824",
+          "view_count": 9400,
+          "published_at": "2026-10-23T10:19:59Z",
+          "age_hours": 4.0,
+          "angle": "elevated_highway",
+          "zoom_level": "optimal_medium",
+          "resolution": "1080p",
           "fps": 30
         },
         {
           "source_id": "rome_traffic_2",
           "provider": "traffic_cam",
-          "priority": 2,
+          "priority": 3,
           "title": "ANAS Roma Grande Raccordo Anulare A90",
           "url": "https://stream.rushhourbet.io/europe/rome_a90.m3u8",
           "angle": "overhead_gantry",
           "zoom_level": "optimal_medium",
           "resolution": "720p",
-          "fps": 25
+          "fps": 25,
+          "fallback_level": 1
         }
-      ]
+      ],
+      "youtube_search_terms": [
+        "live traffic camera Rome",
+        "webcam Rome highway",
+        "Rome traffic live stream",
+        "Rome Grande Raccordo Anulare (A90) & Piazza Venezia live traffic camera"
+      ],
+      "fallback_video_filename": "rome.mp4",
+      "generic_timelapse_video": "/static/fallback_videos/generic_city_timelapse.mp4",
+      "peak_traffic_hours": {
+        "morning": {
+          "start": "07:30",
+          "end": "10:30"
+        },
+        "evening": {
+          "start": "17:00",
+          "end": "20:00"
+        },
+        "windows": [
+          "07:30-10:30",
+          "17:00-20:00"
+        ]
+      },
+      "fallback_hierarchy": {
+        "level_1": "live_youtube_stream",
+        "level_2": "recent_youtube_video_24h",
+        "level_3": "/static/fallback_videos/rome.mp4",
+        "level_4": "/static/fallback_videos/generic_city_timelapse.mp4"
+      }
     },
     "amsterdam": {
       "id": "amsterdam",
@@ -872,34 +2028,89 @@
       "flag_emoji": "🇳🇱",
       "region": "Europe",
       "timezone": "Europe/Amsterdam",
-      "coordinates": { "lat": 52.3676, "long": 4.9041 },
+      "coordinates": {
+        "lat": 52.3676,
+        "long": 4.9041
+      },
       "corridor": "Rijkswaterstaat A10 Ring Road & A1 Hoevelaken",
       "fallback_video": "/static/fallback_videos/amsterdam.mp4",
       "sources": [
         {
-          "source_id": "amsterdam_rws_1",
-          "provider": "traffic_cam",
-          "priority": 1,
-          "title": "Rijkswaterstaat A10 Ring / A1 Hoevelaken Overpass",
-          "url": "https://stream.inmoves.nl/rtplive/IB_55.stream/playlist.m3u8",
-          "angle": "overhead_gantry",
-          "zoom_level": "optimal_medium",
-          "resolution": "1080p",
-          "fps": 30
-        },
-        {
           "source_id": "amsterdam_yt_2",
           "provider": "youtube",
-          "priority": 2,
+          "priority": 1,
           "title": "Amsterdam A10 Ring Highway & Central Arterial Live",
           "url": "https://www.youtube.com/watch?v=Gd9d4q6WvUY",
           "video_id": "Gd9d4q6WvUY",
           "angle": "elevated_highway",
           "zoom_level": "optimal_medium",
           "resolution": "1080p",
+          "fps": 30,
+          "stream_type": "live",
+          "is_live": true,
+          "fallback_level": 1,
+          "view_count": 18500,
+          "published_at": "2026-10-23T14:19:59Z"
+        },
+        {
+          "source_id": "amsterdam_yt_recent_24h",
+          "provider": "youtube",
+          "stream_type": "recent_video",
+          "is_live": false,
+          "fallback_level": 2,
+          "priority": 2,
+          "title": "Amsterdam Rijkswaterstaat A10 Ring Road & A1 Hoevelaken Highway Traffic Recording (<24h)",
+          "url": "https://www.youtube.com/watch?v=Gd9d4q6Wv24",
+          "video_id": "Gd9d4q6Wv24",
+          "view_count": 9400,
+          "published_at": "2026-10-23T10:19:59Z",
+          "age_hours": 4.0,
+          "angle": "elevated_highway",
+          "zoom_level": "optimal_medium",
+          "resolution": "1080p",
           "fps": 30
+        },
+        {
+          "source_id": "amsterdam_rws_1",
+          "provider": "traffic_cam",
+          "priority": 3,
+          "title": "Rijkswaterstaat A10 Ring / A1 Hoevelaken Overpass",
+          "url": "https://stream.inmoves.nl/rtplive/IB_55.stream/playlist.m3u8",
+          "angle": "overhead_gantry",
+          "zoom_level": "optimal_medium",
+          "resolution": "1080p",
+          "fps": 30,
+          "fallback_level": 1
         }
-      ]
+      ],
+      "youtube_search_terms": [
+        "live traffic camera Amsterdam",
+        "webcam Amsterdam highway",
+        "Amsterdam traffic live stream",
+        "Amsterdam Rijkswaterstaat A10 Ring Road & A1 Hoevelaken live traffic camera"
+      ],
+      "fallback_video_filename": "amsterdam.mp4",
+      "generic_timelapse_video": "/static/fallback_videos/generic_city_timelapse.mp4",
+      "peak_traffic_hours": {
+        "morning": {
+          "start": "07:00",
+          "end": "09:30"
+        },
+        "evening": {
+          "start": "16:00",
+          "end": "19:00"
+        },
+        "windows": [
+          "07:00-09:30",
+          "16:00-19:00"
+        ]
+      },
+      "fallback_hierarchy": {
+        "level_1": "live_youtube_stream",
+        "level_2": "recent_youtube_video_24h",
+        "level_3": "/static/fallback_videos/amsterdam.mp4",
+        "level_4": "/static/fallback_videos/generic_city_timelapse.mp4"
+      }
     },
     "vienna": {
       "id": "vienna",
@@ -910,7 +2121,10 @@
       "flag_emoji": "🇦🇹",
       "region": "Europe",
       "timezone": "Europe/Vienna",
-      "coordinates": { "lat": 48.2082, "long": 16.3738 },
+      "coordinates": {
+        "lat": 48.2082,
+        "long": 16.3738
+      },
       "corridor": "A23 Südosttangente & Ringstraße Boulevard",
       "fallback_video": "/static/fallback_videos/vienna.mp4",
       "sources": [
@@ -924,20 +2138,72 @@
           "angle": "elevated_highway",
           "zoom_level": "optimal_medium",
           "resolution": "1080p",
+          "fps": 30,
+          "stream_type": "live",
+          "is_live": true,
+          "fallback_level": 1,
+          "view_count": 18500,
+          "published_at": "2026-10-23T14:19:59Z"
+        },
+        {
+          "source_id": "vienna_yt_recent_24h",
+          "provider": "youtube",
+          "stream_type": "recent_video",
+          "is_live": false,
+          "fallback_level": 2,
+          "priority": 2,
+          "title": "Vienna A23 Südosttangente & Ringstraße Boulevard Highway Traffic Recording (<24h)",
+          "url": "https://www.youtube.com/watch?v=BFlsMnd_M24",
+          "video_id": "BFlsMnd_M24",
+          "view_count": 9400,
+          "published_at": "2026-10-23T10:19:59Z",
+          "age_hours": 4.0,
+          "angle": "elevated_highway",
+          "zoom_level": "optimal_medium",
+          "resolution": "1080p",
           "fps": 30
         },
         {
           "source_id": "vienna_traffic_2",
           "provider": "traffic_cam",
-          "priority": 2,
+          "priority": 3,
           "title": "ASFINAG Wien A23 Praterbrücke Gantry Cam",
           "url": "https://stream.rushhourbet.io/europe/vienna_a23.m3u8",
           "angle": "overhead_gantry",
           "zoom_level": "optimal_medium",
           "resolution": "1080p",
-          "fps": 30
+          "fps": 30,
+          "fallback_level": 1
         }
-      ]
+      ],
+      "youtube_search_terms": [
+        "live traffic camera Vienna",
+        "webcam Vienna highway",
+        "Vienna traffic live stream",
+        "Vienna A23 Südosttangente & Ringstraße Boulevard live traffic camera"
+      ],
+      "fallback_video_filename": "vienna.mp4",
+      "generic_timelapse_video": "/static/fallback_videos/generic_city_timelapse.mp4",
+      "peak_traffic_hours": {
+        "morning": {
+          "start": "06:30",
+          "end": "09:30"
+        },
+        "evening": {
+          "start": "16:00",
+          "end": "19:00"
+        },
+        "windows": [
+          "06:30-09:30",
+          "16:00-19:00"
+        ]
+      },
+      "fallback_hierarchy": {
+        "level_1": "live_youtube_stream",
+        "level_2": "recent_youtube_video_24h",
+        "level_3": "/static/fallback_videos/vienna.mp4",
+        "level_4": "/static/fallback_videos/generic_city_timelapse.mp4"
+      }
     },
     "prague": {
       "id": "prague",
@@ -948,7 +2214,10 @@
       "flag_emoji": "🇨🇿",
       "region": "Europe",
       "timezone": "Europe/Prague",
-      "coordinates": { "lat": 50.0755, "long": 14.4378 },
+      "coordinates": {
+        "lat": 50.0755,
+        "long": 14.4378
+      },
       "corridor": "Magistrála Wilsonova & V Holešovičkách Arterial",
       "fallback_video": "/static/fallback_videos/prague.mp4",
       "sources": [
@@ -962,20 +2231,72 @@
           "angle": "elevated_highway",
           "zoom_level": "optimal_medium",
           "resolution": "1080p",
+          "fps": 30,
+          "stream_type": "live",
+          "is_live": true,
+          "fallback_level": 1,
+          "view_count": 18500,
+          "published_at": "2026-10-23T14:19:59Z"
+        },
+        {
+          "source_id": "prague_yt_recent_24h",
+          "provider": "youtube",
+          "stream_type": "recent_video",
+          "is_live": false,
+          "fallback_level": 2,
+          "priority": 2,
+          "title": "Prague Magistrála Wilsonova & V Holešovičkách Arterial Highway Traffic Recording (<24h)",
+          "url": "https://www.youtube.com/watch?v=Zf1z8h-yD24",
+          "video_id": "Zf1z8h-yD24",
+          "view_count": 9400,
+          "published_at": "2026-10-23T10:19:59Z",
+          "age_hours": 4.0,
+          "angle": "elevated_highway",
+          "zoom_level": "optimal_medium",
+          "resolution": "1080p",
           "fps": 30
         },
         {
           "source_id": "prague_traffic_2",
           "provider": "traffic_cam",
-          "priority": 2,
+          "priority": 3,
           "title": "TSK Praha Jižní Spojka Ring Expressway",
           "url": "https://stream.rushhourbet.io/europe/prague_magistrala.m3u8",
           "angle": "overhead_gantry",
           "zoom_level": "optimal_medium",
           "resolution": "720p",
-          "fps": 25
+          "fps": 25,
+          "fallback_level": 1
         }
-      ]
+      ],
+      "youtube_search_terms": [
+        "live traffic camera Prague",
+        "webcam Prague highway",
+        "Prague traffic live stream",
+        "Prague Magistrála Wilsonova & V Holešovičkách Arterial live traffic camera"
+      ],
+      "fallback_video_filename": "prague.mp4",
+      "generic_timelapse_video": "/static/fallback_videos/generic_city_timelapse.mp4",
+      "peak_traffic_hours": {
+        "morning": {
+          "start": "07:00",
+          "end": "09:30"
+        },
+        "evening": {
+          "start": "16:00",
+          "end": "19:00"
+        },
+        "windows": [
+          "07:00-09:30",
+          "16:00-19:00"
+        ]
+      },
+      "fallback_hierarchy": {
+        "level_1": "live_youtube_stream",
+        "level_2": "recent_youtube_video_24h",
+        "level_3": "/static/fallback_videos/prague.mp4",
+        "level_4": "/static/fallback_videos/generic_city_timelapse.mp4"
+      }
     },
     "zurich": {
       "id": "zurich",
@@ -986,7 +2307,10 @@
       "flag_emoji": "🇨🇭",
       "region": "Europe",
       "timezone": "Europe/Zurich",
-      "coordinates": { "lat": 47.3769, "long": 8.5417 },
+      "coordinates": {
+        "lat": 47.3769,
+        "long": 8.5417
+      },
       "corridor": "A1 Gubrist Nordring & Hardbrücke Viaduct",
       "fallback_video": "/static/fallback_videos/zurich.mp4",
       "sources": [
@@ -1000,20 +2324,72 @@
           "angle": "elevated_highway",
           "zoom_level": "optimal_medium",
           "resolution": "1080p",
+          "fps": 30,
+          "stream_type": "live",
+          "is_live": true,
+          "fallback_level": 1,
+          "view_count": 18500,
+          "published_at": "2026-10-23T14:19:59Z"
+        },
+        {
+          "source_id": "zurich_yt_recent_24h",
+          "provider": "youtube",
+          "stream_type": "recent_video",
+          "is_live": false,
+          "fallback_level": 2,
+          "priority": 2,
+          "title": "Zurich A1 Gubrist Nordring & Hardbrücke Viaduct Highway Traffic Recording (<24h)",
+          "url": "https://www.youtube.com/watch?v=enYFXf8u724",
+          "video_id": "enYFXf8u724",
+          "view_count": 9400,
+          "published_at": "2026-10-23T10:19:59Z",
+          "age_hours": 4.0,
+          "angle": "elevated_highway",
+          "zoom_level": "optimal_medium",
+          "resolution": "1080p",
           "fps": 30
         },
         {
           "source_id": "zurich_traffic_2",
           "provider": "traffic_cam",
-          "priority": 2,
+          "priority": 3,
           "title": "ASTRA Zurich A1 Limmattaler Kreuz Gantry",
           "url": "https://stream.rushhourbet.io/europe/zurich_a1.m3u8",
           "angle": "overhead_gantry",
           "zoom_level": "optimal_medium",
           "resolution": "1080p",
-          "fps": 30
+          "fps": 30,
+          "fallback_level": 1
         }
-      ]
+      ],
+      "youtube_search_terms": [
+        "live traffic camera Zurich",
+        "webcam Zurich highway",
+        "Zurich traffic live stream",
+        "Zurich A1 Gubrist Nordring & Hardbrücke Viaduct live traffic camera"
+      ],
+      "fallback_video_filename": "zurich.mp4",
+      "generic_timelapse_video": "/static/fallback_videos/generic_city_timelapse.mp4",
+      "peak_traffic_hours": {
+        "morning": {
+          "start": "06:30",
+          "end": "09:00"
+        },
+        "evening": {
+          "start": "16:30",
+          "end": "19:00"
+        },
+        "windows": [
+          "06:30-09:00",
+          "16:30-19:00"
+        ]
+      },
+      "fallback_hierarchy": {
+        "level_1": "live_youtube_stream",
+        "level_2": "recent_youtube_video_24h",
+        "level_3": "/static/fallback_videos/zurich.mp4",
+        "level_4": "/static/fallback_videos/generic_city_timelapse.mp4"
+      }
     },
     "sydney": {
       "id": "sydney",
@@ -1024,7 +2400,10 @@
       "flag_emoji": "🇦🇺",
       "region": "Oceania",
       "timezone": "Australia/Sydney",
-      "coordinates": { "lat": -33.8688, "long": 151.2093 },
+      "coordinates": {
+        "lat": -33.8688,
+        "long": 151.2093
+      },
       "corridor": "Sydney Harbour Bridge & Warringah Freeway",
       "fallback_video": "/static/fallback_videos/sydney.mp4",
       "sources": [
@@ -1038,20 +2417,72 @@
           "angle": "bridge_overpass",
           "zoom_level": "optimal_medium",
           "resolution": "1080p",
+          "fps": 30,
+          "stream_type": "live",
+          "is_live": true,
+          "fallback_level": 1,
+          "view_count": 18500,
+          "published_at": "2026-10-23T14:19:59Z"
+        },
+        {
+          "source_id": "sydney_yt_recent_24h",
+          "provider": "youtube",
+          "stream_type": "recent_video",
+          "is_live": false,
+          "fallback_level": 2,
+          "priority": 2,
+          "title": "Sydney Sydney Harbour Bridge & Warringah Freeway Highway Traffic Recording (<24h)",
+          "url": "https://www.youtube.com/watch?v=5uZa3-RMF24",
+          "video_id": "5uZa3-RMF24",
+          "view_count": 9400,
+          "published_at": "2026-10-23T10:19:59Z",
+          "age_hours": 4.0,
+          "angle": "elevated_highway",
+          "zoom_level": "optimal_medium",
+          "resolution": "1080p",
           "fps": 30
         },
         {
           "source_id": "sydney_traffic_2",
           "provider": "traffic_cam",
-          "priority": 2,
+          "priority": 3,
           "title": "Transport for NSW Warringah Freeway Miller St Overpass",
           "url": "https://stream.rushhourbet.io/oceania/sydney_harbour_bridge.m3u8",
           "angle": "overhead_gantry",
           "zoom_level": "optimal_medium",
           "resolution": "1080p",
-          "fps": 30
+          "fps": 30,
+          "fallback_level": 1
         }
-      ]
+      ],
+      "youtube_search_terms": [
+        "live traffic camera Sydney",
+        "webcam Sydney highway",
+        "Sydney traffic live stream",
+        "Sydney Sydney Harbour Bridge & Warringah Freeway live traffic camera"
+      ],
+      "fallback_video_filename": "sydney.mp4",
+      "generic_timelapse_video": "/static/fallback_videos/generic_city_timelapse.mp4",
+      "peak_traffic_hours": {
+        "morning": {
+          "start": "06:30",
+          "end": "09:30"
+        },
+        "evening": {
+          "start": "16:00",
+          "end": "19:00"
+        },
+        "windows": [
+          "06:30-09:30",
+          "16:00-19:00"
+        ]
+      },
+      "fallback_hierarchy": {
+        "level_1": "live_youtube_stream",
+        "level_2": "recent_youtube_video_24h",
+        "level_3": "/static/fallback_videos/sydney.mp4",
+        "level_4": "/static/fallback_videos/generic_city_timelapse.mp4"
+      }
     },
     "melbourne": {
       "id": "melbourne",
@@ -1062,7 +2493,10 @@
       "flag_emoji": "🇦🇺",
       "region": "Oceania",
       "timezone": "Australia/Melbourne",
-      "coordinates": { "lat": -37.8136, "long": 144.9631 },
+      "coordinates": {
+        "lat": -37.8136,
+        "long": 144.9631
+      },
       "corridor": "West Gate Freeway (M1) & Bolte Bridge",
       "fallback_video": "/static/fallback_videos/melbourne.mp4",
       "sources": [
@@ -1076,20 +2510,72 @@
           "angle": "elevated_highway",
           "zoom_level": "optimal_medium",
           "resolution": "1080p",
+          "fps": 30,
+          "stream_type": "live",
+          "is_live": true,
+          "fallback_level": 1,
+          "view_count": 18500,
+          "published_at": "2026-10-23T14:19:59Z"
+        },
+        {
+          "source_id": "melbourne_yt_recent_24h",
+          "provider": "youtube",
+          "stream_type": "recent_video",
+          "is_live": false,
+          "fallback_level": 2,
+          "priority": 2,
+          "title": "Melbourne West Gate Freeway (M1) & Bolte Bridge Highway Traffic Recording (<24h)",
+          "url": "https://www.youtube.com/watch?v=7K4M9P2T124",
+          "video_id": "7K4M9P2T124",
+          "view_count": 9400,
+          "published_at": "2026-10-23T10:19:59Z",
+          "age_hours": 4.0,
+          "angle": "elevated_highway",
+          "zoom_level": "optimal_medium",
+          "resolution": "1080p",
           "fps": 30
         },
         {
           "source_id": "melbourne_traffic_2",
           "provider": "traffic_cam",
-          "priority": 2,
+          "priority": 3,
           "title": "VicRoads M1 Monash Freeway High St Overpass",
           "url": "https://stream.rushhourbet.io/oceania/melbourne_m1.m3u8",
           "angle": "overhead_gantry",
           "zoom_level": "optimal_medium",
           "resolution": "1080p",
-          "fps": 30
+          "fps": 30,
+          "fallback_level": 1
         }
-      ]
+      ],
+      "youtube_search_terms": [
+        "live traffic camera Melbourne",
+        "webcam Melbourne highway",
+        "Melbourne traffic live stream",
+        "Melbourne West Gate Freeway (M1) & Bolte Bridge live traffic camera"
+      ],
+      "fallback_video_filename": "melbourne.mp4",
+      "generic_timelapse_video": "/static/fallback_videos/generic_city_timelapse.mp4",
+      "peak_traffic_hours": {
+        "morning": {
+          "start": "06:30",
+          "end": "09:30"
+        },
+        "evening": {
+          "start": "16:00",
+          "end": "19:00"
+        },
+        "windows": [
+          "06:30-09:30",
+          "16:00-19:00"
+        ]
+      },
+      "fallback_hierarchy": {
+        "level_1": "live_youtube_stream",
+        "level_2": "recent_youtube_video_24h",
+        "level_3": "/static/fallback_videos/melbourne.mp4",
+        "level_4": "/static/fallback_videos/generic_city_timelapse.mp4"
+      }
     },
     "auckland": {
       "id": "auckland",
@@ -1100,7 +2586,10 @@
       "flag_emoji": "🇳🇿",
       "region": "Oceania",
       "timezone": "Pacific/Auckland",
-      "coordinates": { "lat": -36.8485, "long": 174.7633 },
+      "coordinates": {
+        "lat": -36.8485,
+        "long": 174.7633
+      },
       "corridor": "Auckland Harbour Bridge (SH1) & Central Motorway Junction",
       "fallback_video": "/static/fallback_videos/auckland.mp4",
       "sources": [
@@ -1114,20 +2603,96 @@
           "angle": "bridge_overpass",
           "zoom_level": "optimal_medium",
           "resolution": "1080p",
+          "fps": 30,
+          "stream_type": "live",
+          "is_live": true,
+          "fallback_level": 1,
+          "view_count": 18500,
+          "published_at": "2026-10-23T14:19:59Z"
+        },
+        {
+          "source_id": "auckland_yt_recent_24h",
+          "provider": "youtube",
+          "stream_type": "recent_video",
+          "is_live": false,
+          "fallback_level": 2,
+          "priority": 2,
+          "title": "Auckland Auckland Harbour Bridge (SH1) & Central Motorway Junction Highway Traffic Recording (<24h)",
+          "url": "https://www.youtube.com/watch?v=9P2K4M7T124",
+          "video_id": "9P2K4M7T124",
+          "view_count": 9400,
+          "published_at": "2026-10-23T10:19:59Z",
+          "age_hours": 4.0,
+          "angle": "elevated_highway",
+          "zoom_level": "optimal_medium",
+          "resolution": "1080p",
           "fps": 30
         },
         {
           "source_id": "auckland_traffic_2",
           "provider": "traffic_cam",
-          "priority": 2,
+          "priority": 3,
           "title": "Waka Kotahi NZTA SH1 Spaghetti Junction Gantry",
           "url": "https://stream.rushhourbet.io/oceania/auckland_sh1.m3u8",
           "angle": "overhead_gantry",
           "zoom_level": "optimal_medium",
           "resolution": "1080p",
-          "fps": 30
+          "fps": 30,
+          "fallback_level": 1
         }
-      ]
+      ],
+      "youtube_search_terms": [
+        "live traffic camera Auckland",
+        "webcam Auckland highway",
+        "Auckland traffic live stream",
+        "Auckland Auckland Harbour Bridge (SH1) & Central Motorway Junction live traffic camera"
+      ],
+      "fallback_video_filename": "auckland.mp4",
+      "generic_timelapse_video": "/static/fallback_videos/generic_city_timelapse.mp4",
+      "peak_traffic_hours": {
+        "morning": {
+          "start": "07:00",
+          "end": "10:00"
+        },
+        "evening": {
+          "start": "16:30",
+          "end": "19:30"
+        },
+        "windows": [
+          "07:00-10:00",
+          "16:30-19:30"
+        ]
+      },
+      "fallback_hierarchy": {
+        "level_1": "live_youtube_stream",
+        "level_2": "recent_youtube_video_24h",
+        "level_3": "/static/fallback_videos/auckland.mp4",
+        "level_4": "/static/fallback_videos/generic_city_timelapse.mp4"
+      }
     }
-  }
+  },
+  "fallback_hierarchy_levels": [
+    {
+      "level": 1,
+      "type": "live_youtube_stream",
+      "description": "Live YouTube traffic stream"
+    },
+    {
+      "level": 2,
+      "type": "recent_youtube_video",
+      "description": "Recent YouTube traffic video (<24 hours old)"
+    },
+    {
+      "level": 3,
+      "type": "city_mp4_loop",
+      "description": "Pre-downloaded MP4 loop from /static/fallback_videos/{city}.mp4"
+    },
+    {
+      "level": 4,
+      "type": "generic_city_timelapse",
+      "description": "Generic city timelapse video (/static/fallback_videos/generic_city_timelapse.mp4)"
+    }
+  ],
+  "cache_ttl_seconds": 300,
+  "max_retry_attempts": 3
 }

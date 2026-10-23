@@ -1449,16 +1449,16 @@ async def get_camera_feed(feed_id: int, db: AsyncSession = Depends(get_db)):
 
 @app.get("/api/cities", response_model=dict)
 @app.get("/cities", response_model=dict)
-async def get_global_cities(region: Optional[str] = None):
+async def get_global_cities(region: Optional[str] = None, bandwidth: Optional[str] = None):
   """
   Returns all global cities with coordinates (lat/long), IANA timezone, country_code,
-  flag_emoji, region, and optimal fallback video URL.
+  flag_emoji, region, YouTube search terms, peak traffic hours, and optimal fallback video URL.
   """
   cities = []
   for slug, cfg in smart_feed_agent.cities_config.items():
     if region and cfg.get("region", "").lower() != region.strip().lower():
       continue
-    optimal = smart_feed_agent.get_optimal_feed(slug, use_load_balancing=False)
+    optimal = smart_feed_agent.get_optimal_feed(slug, use_load_balancing=False, bandwidth=bandwidth)
     coords = cfg.get("coordinates", {}) if isinstance(cfg.get("coordinates"), dict) else {}
     lat = cfg.get("lat") if cfg.get("lat") is not None else coords.get("lat")
     lng = cfg.get("long") if cfg.get("long") is not None else coords.get("long")
@@ -1476,8 +1476,14 @@ async def get_global_cities(region: Optional[str] = None):
       "long": lng,
       "coordinates": {"lat": lat, "long": lng},
       "lng_lat": [lng, lat],
-      "fallback_video": cfg.get("fallback_video"),
+      "youtube_search_terms": cfg.get("youtube_search_terms") or smart_feed_agent.get_smart_keyword_variations(slug),
+      "peak_traffic_hours": cfg.get("peak_traffic_hours"),
+      "peak_traffic": optimal.get("peak_traffic"),
+      "fallback_video": cfg.get("fallback_video") or f"/static/fallback_videos/{slug}.mp4",
+      "fallback_video_filename": cfg.get("fallback_video_filename") or f"{slug}.mp4",
+      "generic_timelapse_video": cfg.get("generic_timelapse_video") or "/static/fallback_videos/generic_city_timelapse.mp4",
       "optimal_video_url": optimal.get("optimal_video_url"),
+      "fallback_level": optimal.get("fallback_level", 1),
       "quality_score": optimal.get("quality_score"),
       "health_status": optimal.get("health_status"),
     })
@@ -1494,15 +1500,25 @@ async def api_feed_manager(
   city: Optional[str] = None,
   region: Optional[str] = None,
   load_balance: bool = True,
+  bandwidth: Optional[str] = None,
+  downlink_mbps: Optional[float] = None,
 ):
   """
   Smart Feed Manager Endpoint (/api/feed-manager):
-  Returns the optimal video URL, quality score, fallback status, and health telemetry
+  Returns the optimal video URL, quality score, fallback status, bandwidth adaptation, and health telemetry
   for each global city (or for a specific requested city/region).
   """
   if city:
-    return smart_feed_agent.get_optimal_feed(city, use_load_balancing=load_balance)
-  all_data = smart_feed_agent.get_all_optimal_feeds(use_load_balancing=load_balance)
+    return smart_feed_agent.get_optimal_feed(
+      city,
+      use_load_balancing=load_balance,
+      bandwidth=bandwidth,
+      downlink_mbps=downlink_mbps,
+    )
+  all_data = smart_feed_agent.get_all_optimal_feeds(
+    use_load_balancing=load_balance,
+    bandwidth=bandwidth,
+  )
   if region:
     reg_norm = region.strip().lower()
     filtered_cities = {
@@ -1520,9 +1536,77 @@ async def api_feed_manager(
 
 
 @app.get("/api/feed-manager/{city_name}", response_model=dict)
-async def api_feed_manager_city(city_name: str, load_balance: bool = True):
+async def api_feed_manager_city(
+  city_name: str,
+  load_balance: bool = True,
+  bandwidth: Optional[str] = None,
+  downlink_mbps: Optional[float] = None,
+):
   """Returns the optimal video URL and telemetry for a specific city."""
-  return smart_feed_agent.get_optimal_feed(city_name, use_load_balancing=load_balance)
+  return smart_feed_agent.get_optimal_feed(
+    city_name,
+    use_load_balancing=load_balance,
+    bandwidth=bandwidth,
+    downlink_mbps=downlink_mbps,
+  )
+
+
+@app.get("/api/feed-health", response_model=dict)
+async def api_all_feeds_health():
+  """
+  Global feed health summary endpoint across all configured cities.
+  """
+  all_feeds = smart_feed_agent.get_all_optimal_feeds(use_load_balancing=False)
+  return {
+    "platform": "RUSH HOUR BET",
+    "status": "healthy",
+    "summary": all_feeds["summary"],
+    "rate_limit_state": smart_feed_agent.youtube_rate_limit_state,
+    "failover_history_count": len(smart_feed_agent.failover_history),
+    "recent_failovers": smart_feed_agent.failover_history[:10],
+    "cities": {
+      k: {
+        "city": v.get("city"),
+        "status": v.get("status"),
+        "health_status": v.get("health_status"),
+        "optimal_url": v.get("optimal_url"),
+        "fallback_level": v.get("fallback_level", 1),
+        "fallback_level_name": v.get("fallback_level_name", "live_youtube_stream"),
+        "is_fallback": v.get("is_fallback", False),
+        "quality_score": v.get("quality_score"),
+      }
+      for k, v in all_feeds["cities"].items()
+    },
+    "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+  }
+
+
+@app.get("/api/feed-health/{city}", response_model=dict)
+async def api_city_feed_health(
+  city: str,
+  probe: bool = False,
+  bandwidth: Optional[str] = None,
+):
+  """
+  Dedicated City Feed Health Monitoring Endpoint (/api/feed-health/{city}):
+  Returns live stream availability, active fallback hierarchy level (1..4),
+  quality score, latency, 5-minute cache TTL status, peak traffic optimization status,
+  and consecutive failure counters.
+  """
+  try:
+    return await smart_feed_agent.get_city_feed_health(city_name=city, probe=probe, bandwidth=bandwidth)
+  except ValueError as ve:
+    raise HTTPException(status_code=404, detail=str(ve))
+
+
+@app.get("/api/admin/feed-overrides", response_model=dict)
+async def api_list_feed_overrides():
+  """List all active manual admin feed overrides."""
+  return {
+    "platform": "RUSH HOUR BET",
+    "active_overrides_count": len(smart_feed_agent.admin_overrides),
+    "overrides": smart_feed_agent.admin_overrides,
+  }
 
 
 @app.post("/api/feed-manager/override", response_model=dict)
@@ -1534,8 +1618,10 @@ async def api_set_feed_override(payload: FeedOverrideRequest):
   try:
     result = smart_feed_agent.set_admin_override(
       city=payload.city,
+      override_url=payload.override_url,
       video_url=payload.video_url,
       source_id=payload.source_id,
+      force_fallback=payload.force_fallback,
       reason=payload.reason or "Manual admin override",
       admin_user=payload.admin_user or "admin",
     )
@@ -1572,6 +1658,7 @@ async def api_emergency_feed_failover(payload: FeedFailoverRequest, db: AsyncSes
   """
   switch_result = await smart_feed_agent.emergency_switch_feed(
     city=payload.city,
+    failed_url=payload.failed_url,
     failed_source_id=payload.failed_source_id,
     reason=payload.reason or "Stream connection timeout",
     session=db,
@@ -1588,29 +1675,109 @@ async def api_trigger_feed_scan(db: AsyncSession = Depends(get_db)):
   return scan_result
 
 
+def _create_progressive_video_response(
+  video_path: str,
+  request: Request,
+  extra_headers: Optional[Dict[str, str]] = None,
+  bandwidth: Optional[str] = None,
+  downlink_mbps: Optional[float] = None,
+) -> Response:
+  """
+  Serve an MP4 file with progressive HTTP byte-range streaming (206 Partial Content)
+  and bandwidth-adaptive chunk sizing for smooth playback under 100+ concurrent connections.
+  """
+  file_size = os.path.getsize(video_path)
+  bw_profile = smart_feed_agent.get_bandwidth_profile(bandwidth=bandwidth, downlink_mbps=downlink_mbps)
+  chunk_size = int(bw_profile.get("progressive_chunk_bytes", 262144))
+
+  base_headers = {
+    "Accept-Ranges": "bytes",
+    "Cache-Control": "public, max-age=300",
+    "X-Platform": "RUSH HOUR BET",
+    "X-Bandwidth-Profile": str(bw_profile["profile"]),
+    "X-Recommended-Resolution": str(bw_profile["recommended_resolution"]),
+    "X-Target-Bitrate-Kbps": str(bw_profile["target_bitrate_kbps"]),
+  }
+  if extra_headers:
+    base_headers.update(extra_headers)
+
+  range_header = request.headers.get("range") or request.headers.get("Range")
+  if range_header and range_header.strip().lower().startswith("bytes="):
+    try:
+      range_spec = range_header.strip().split("=", 1)[1]
+      start_str, end_str = range_spec.split("-", 1)
+      start = int(start_str) if start_str.strip() else 0
+      end = int(end_str) if end_str.strip() else min(start + chunk_size - 1, file_size - 1)
+      start = max(0, min(start, file_size - 1))
+      end = max(start, min(end, file_size - 1))
+      content_length = (end - start) + 1
+
+      with open(video_path, "rb") as f:
+        f.seek(start)
+        data = f.read(content_length)
+
+      range_headers = {
+        **base_headers,
+        "Content-Range": f"bytes {start}-{end}/{file_size}",
+        "Content-Length": str(content_length),
+      }
+      return Response(
+        content=data,
+        status_code=206,
+        media_type="video/mp4",
+        headers=range_headers,
+      )
+    except Exception:
+      pass
+
+  return FileResponse(
+    video_path,
+    media_type="video/mp4",
+    headers=base_headers,
+  )
+
+
 @app.api_route("/static/fallback_videos/{video_name}", methods=["GET", "HEAD"])
-async def serve_fallback_video(video_name: str):
-  """Serve pre-downloaded high-quality fallback traffic loop videos."""
+async def serve_fallback_video(
+  video_name: str,
+  request: Request,
+  bandwidth: Optional[str] = None,
+  downlink_mbps: Optional[float] = None,
+):
+  """
+  Serve pre-downloaded high-quality fallback traffic loop videos (Level 3)
+  and generic city timelapse videos (Level 4) with progressive byte-range streaming.
+  """
   safe_name = os.path.basename(video_name)
   if not safe_name.endswith(".mp4"):
     safe_name = f"{safe_name}.mp4"
   base_dir = os.path.dirname(os.path.abspath(__file__))
   fallback_dir = os.path.join(base_dir, "static", "fallback_videos")
   video_path = os.path.join(fallback_dir, safe_name)
+  fallback_lvl = "3"
+  if "timelapse" in safe_name or safe_name == "default.mp4":
+    fallback_lvl = "4"
+
   if not os.path.exists(video_path):
-    video_path = os.path.join(fallback_dir, "default.mp4")
+    fallback_lvl = "4"
+    for generic_candidate in ("generic_city_timelapse.mp4", "default.mp4"):
+      cand = os.path.join(fallback_dir, generic_candidate)
+      if os.path.exists(cand):
+        video_path = cand
+        break
   if not os.path.exists(video_path):
     video_path = os.path.join(base_dir, "static", "videos", "sample_traffic.mp4")
   if not os.path.exists(video_path):
     raise HTTPException(status_code=404, detail="Fallback video not found")
-  return FileResponse(
-    video_path,
-    media_type="video/mp4",
-    headers={
-      "Accept-Ranges": "bytes",
-      "Cache-Control": "public, max-age=300",
+
+  return _create_progressive_video_response(
+    video_path=video_path,
+    request=request,
+    bandwidth=bandwidth,
+    downlink_mbps=downlink_mbps,
+    extra_headers={
       "X-Feed-Fallback": "true",
-      "X-Platform": "RUSH HOUR BET",
+      "X-Fallback-Level": fallback_lvl,
     },
   )
 
