@@ -1,0 +1,39 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "useDefineForClassFields": true,
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "strict": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": [
+    "src/main.tsx",
+    "src/App.tsx",
+    "src/vite-env.d.ts",
+    "src/components/ProtectedRoute.tsx",
+    "src/components/common/**/*",
+    "src/components/layout/**/*",
+    "src/components/betting/**/*",
+    "src/components/wallet/**/*",
+    "src/components/map/**/*",
+    "src/components/admin/**/*",
+    "src/components/legal/**/*",
+    "src/components/compliance/**/*",
+    "src/components/security/**/*",
+    "src/pages/**/*",
+    "src/services/**/*",
+    "src/store/**/*",
+    "src/utils/**/*"
+  ]
+}
