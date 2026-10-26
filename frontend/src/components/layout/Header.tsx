@@ -87,7 +87,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileSidebar }) => {
             <div>
               <div className="flex items-center gap-1.5">
                 <span className="font-extrabold text-lg tracking-tight text-white">
-                  JUNGLE<span className="text-[#FFD700]">BET</span>
+                  RUSH HOUR <span className="text-[#FFD700]">BET</span>
                 </span>
                 <span className="hidden sm:inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
                   <Radio className="w-2.5 h-2.5 animate-pulse" />

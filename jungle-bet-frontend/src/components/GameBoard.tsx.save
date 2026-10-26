@@ -23,7 +23,7 @@ export default function GameBoard() {
   eventSourceRef.current = es;
 
   es.onopen = () => {
-   console.log("✅ Connected to Jungle Bet Live Feed");
+   console.log("✅ Connected to RUSH HOUR BET Live Feed");
    setIsConnected(true);
    setRoadName("North Ring Road, Lyon"); // Initial load state
   };
@@ -83,13 +83,13 @@ export default function GameBoard() {
      <img src="/road-bg.jpg" alt="Cam" className="w-full h-full object-cover" onError={(e)=>{e.currentTarget.style.display='none'}}/>
     </div>
 
-    {/* Top Bar HUD - BRANDED FOR JUNGLE BET WITH LIVE STATUS INDICATOR */}
+    {/* Top Bar HUD - BRANDED FOR RUSH HOUR BET WITH LIVE STATUS INDICATOR */}
     <div className="absolute top-0 left-0 right-0 p-4 md:p-6 flex justify-between items-start z-20 bg-gradient-to-b from-black/90 via-black/50 to-transparent">
 
      {/* LEFT SIDE: Branding & Location Stack */}
      <div className="flex flex-col gap-1">
       <h1 className="text-xl md:text-2xl font-black italic tracking-tighter text-white drop-shadow-lg">
-       JUNGLE<span className="text-[var(--jungle-green)]">BET</span>
+       RUSH HOUR <span className="text-[var(--jungle-green)]">BET</span>
       </h1>
 
       <div className="flex items-center gap-2 mt-1">

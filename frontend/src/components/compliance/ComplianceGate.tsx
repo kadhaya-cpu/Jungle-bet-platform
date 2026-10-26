@@ -127,7 +127,7 @@ export const ComplianceGate: React.FC<ComplianceGateProps> = ({ children }) => {
                     id="compliance-gate-heading"
                     className="text-lg sm:text-xl font-black text-white tracking-tight"
                   >
-                    JUNGLE<span className="text-[#FFD700]">BET</span> REGULATORY COMPLIANCE GATE
+                    RUSH HOUR <span className="text-[#FFD700]">BET</span> REGULATORY COMPLIANCE GATE
                   </h1>
                   <p className="text-xs text-gray-400">
                     Mandatory Legal Onboarding • Review & accept all 3 policies (including the FX Spread Clause) to unlock platform access

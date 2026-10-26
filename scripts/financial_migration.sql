@@ -1,4 +1,4 @@
--- Jungle Bet Financial Core Migration
+-- RUSH HOUR BET Financial Core Migration
 -- Implements Wallet Segregation, Transaction Ledger, and Direct SQL Update Prevention
 
 -- 1. Wallets Table

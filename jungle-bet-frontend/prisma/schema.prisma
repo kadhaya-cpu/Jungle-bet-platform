@@ -75,7 +75,7 @@ model VerificationToken {
 }
 
 // ==========================================
-// JUNGLE BET GAME MODELS
+// RUSH HOUR BET GAME MODELS
 // ==========================================
 model Bet {
   id             String    @id @default(cuid())

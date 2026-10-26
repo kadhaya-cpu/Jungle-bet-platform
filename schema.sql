@@ -1,4 +1,4 @@
--- Jungle Bet Database Migration / Schema
+-- RUSH HOUR BET Database Migration / Schema
 -- Ensures User schema contains phone (unique), provider, and providerAccountId
 
 CREATE TABLE IF NOT EXISTS users (
@@ -111,7 +111,7 @@ CREATE INDEX IF NOT EXISTS idx_payments_user_id ON payments(user_id);
 CREATE INDEX IF NOT EXISTS idx_payments_status ON payments(status);
 
 -- ==========================================
--- JUNGLE BET FINANCIAL CORE SCHEMA
+-- RUSH HOUR BET FINANCIAL CORE SCHEMA
 -- ==========================================
 
 -- Wallets Table (Segregated: PLAYER, HOUSE_REVENUE, OPERATOR_BANK)

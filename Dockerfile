@@ -1,5 +1,5 @@
 # ==============================================================================
-# Jungle Bet Backend - Production Dockerfile
+# RUSH HOUR BET Backend - Production Dockerfile
 # Base: python:3.12-slim (migrated from nvidia/cuda base for lightweight deployment)
 # Features: FastAPI, Uvicorn, PyTorch/torch, Ultralytics YOLOv8, OpenCV, Asyncpg
 # ==============================================================================
@@ -7,8 +7,8 @@
 FROM python:3.12-slim
 
 # Labels
-LABEL maintainer="Jungle Bet Team"
-LABEL description="Production FastAPI backend for Jungle Bet traffic telemetry and sports betting"
+LABEL maintainer="RUSH HOUR BET Team"
+LABEL description="Production FastAPI backend for RUSH HOUR BET traffic telemetry and sports betting"
 
 # Python runtime and environment flags
 ENV PYTHONUNBUFFERED=1 \

@@ -1,5 +1,5 @@
 # ==============================================================================
-# Jungle Bet Frontend - Next.js 16 Production Multi-Stage Dockerfile
+# RUSH HOUR BET Frontend - Next.js 16 Production Multi-Stage Dockerfile
 # Tag: jungle-bet-frontend:latest
 # ==============================================================================
 

@@ -71,7 +71,7 @@ export const Login: React.FC = () => {
             <Sparkles className="w-6 h-6" />
           </div>
           <h1 className="text-2xl font-black text-white tracking-tight">
-            Sign In to Jungle<span className="text-[#FFD700]">Bet</span>
+            Sign In to RUSH HOUR <span className="text-[#FFD700]">BET</span>
           </h1>
           <p className="text-xs text-gray-400">
             Access live optical traffic betting &amp; your segregated USD vault

@@ -193,7 +193,7 @@ export const AgeVerificationGate: React.FC<AgeVerificationGateProps> = ({
               Are you 18 or older?
             </h1>
             <p className="text-xs sm:text-sm text-gray-300 leading-relaxed">
-              Welcome to <strong className="text-white">JUNGLE<span className="text-[#FFD700]">BET</span></strong>. This platform features real-money optical traffic wagering and proprietary FX currency settlement.
+              Welcome to <strong className="text-white">RUSH HOUR <span className="text-[#FFD700]">BET</span></strong>. This platform features real-money optical traffic wagering and proprietary FX currency settlement.
             </p>
           </div>
 
